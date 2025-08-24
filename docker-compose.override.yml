@@ -1,0 +1,41 @@
+services:
+
+  webserver:
+    networks:
+      - ndsnet
+
+  scheduler:
+    networks:
+      - ndsnet
+
+  triggerer:
+    networks:
+      - ndsnet
+
+  postgres_dw:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: dw_user
+      POSTGRES_PASSWORD: dw_password
+      POSTGRES_DB: tfl_dw
+    restart: always
+    volumes:
+      - ./include/data/postgres-dw:/postgres-dw-data
+    ports:
+      - "5433:5432"
+    networks:
+      - ndsnet
+
+  metabase:
+    image: metabase/metabase:v0.52.8.4
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./include/data/metabase:/metabase-data
+    networks:
+      - ndsnet
+
+networks:
+  ndsnet:
+    driver: bridge
