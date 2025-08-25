@@ -7,6 +7,20 @@ services:
   scheduler:
     networks:
       - ndsnet
+#  dev-branch only:
+    command:
+      - /bin/bash
+      - -c
+      - |
+        airflow db upgrade
+        echo "Creating MinIO connection..."
+        airflow connections add 'minio' \
+          --conn-type 'aws' \
+          --conn-login 'minio' \
+          --conn-password 'minio123' \
+          --conn-extra '{"endpoint_url": "http://minio:9000"}'
+        airflow scheduler
+#
 
   triggerer:
     networks:
@@ -35,6 +49,38 @@ services:
       - ./include/data/metabase:/metabase-data
     networks:
       - ndsnet
+
+#  dev-branch only:
+  minio:
+    image: minio/minio:RELEASE.2024-06-13T22-53-53Z
+    container_name: minio
+    hostname: minio
+    restart: always
+    volumes:
+      - ./include/data/minio:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    entrypoint: >
+      /bin/sh -c "
+      minio server /data --console-address ':9001' &
+      MINIO_PID=$! &&
+      sleep 5 &&
+      mc alias set local http://localhost:9000 minio minio123 &&
+      mc mb -p local/tfl-data || true &&
+      wait $MINIO_PID
+      "
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - ndsnet
+#
 
 networks:
   ndsnet:
