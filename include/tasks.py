@@ -1,19 +1,17 @@
 from airflow.exceptions import AirflowException
-from airflow.providers.http.hooks.http import HttpHook
 from airflow.sensors.base import PokeReturnValue
 from airflow.utils.log.logging_mixin import LoggingMixin
-from requests import RequestException
+
+from include.helpers.api_client import get_api_hook
 
 
-def _check_api():
-    api = HttpHook(
-        method='GET',
-        http_conn_id='tfl_api',
-    )
+def _check_api() -> PokeReturnValue:
+    from requests import RequestException
+    api = get_api_hook()
     try:
         api.run(
-            endpoint='Line/Mode/tube/Status',
-            extra_options = {"timeout": (3.0, 5.0)},
+            endpoint='/Line/Meta/Modes',
+            extra_options = {'timeout': (3.0, 5.0)},
         )
     except (RequestException, AirflowException):
         LoggingMixin().log.exception('Failed to connect the API')
