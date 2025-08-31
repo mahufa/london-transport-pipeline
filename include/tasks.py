@@ -3,13 +3,13 @@ from typing import Callable
 from airflow.decorators import task
 from airflow.sensors.base import PokeReturnValue
 
-from include.helpers.api_client import get_api_hook, is_api_available
+from include.helpers.api_client import is_api_available
 
 
 def make_check_api_task(
-    poke_interval=30,
-    timeout=300,
-    mode="reschedule"
+    poke_interval=10,
+    timeout=100,
+    mode='poke',
 ) -> Callable:
     @task.sensor(
         poke_interval=poke_interval,
@@ -17,12 +17,7 @@ def make_check_api_task(
         mode=mode
     )
     def _check_api_task() -> PokeReturnValue:
-        return _check_api()
+        condition = is_api_available()
+        return PokeReturnValue(is_done=condition)
 
     return _check_api_task
-
-def _check_api() -> PokeReturnValue:
-    api = get_api_hook()
-    condition = is_api_available(api)
-
-    return PokeReturnValue(is_done=condition)
