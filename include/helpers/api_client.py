@@ -8,7 +8,7 @@ def get_api_data(
     endpoint: str,
     params: dict = None,
 ) -> dict:
-    api = get_api_hook()
+    api = _get_api_hook()
     response = api.run(
         endpoint=endpoint,
         data=params, #HttpHook expects GET params passed via `data=...`
@@ -16,10 +16,11 @@ def get_api_data(
     return response.json()
 
 
-def is_api_available(api: HttpHook) -> bool:
+def is_api_available() -> bool:
     from requests import RequestException
 
     try:
+        api = _get_api_hook()
         api.run(
             endpoint='/Line/Meta/Modes',
             extra_options={'timeout': (3.0, 5.0)},
@@ -32,7 +33,7 @@ def is_api_available(api: HttpHook) -> bool:
         return True
 
 
-def get_api_hook() -> HttpHook:
+def _get_api_hook() -> HttpHook:
     return HttpHook(
         method='GET',
         http_conn_id='tfl_api',
