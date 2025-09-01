@@ -2,8 +2,7 @@ from airflow.decorators import dag, task
 
 from pendulum import duration, datetime
 
-from include.helpers.api_client import get_api_data
-from include.tasks import make_check_api_task
+from include.tasks import make_check_api_task, make_get_data_task
 
 
 @dag(
@@ -24,23 +23,20 @@ from include.tasks import make_check_api_task
 )
 def tfl_roads():
 
-    check_api = make_check_api_task(
+    check_api = make_check_api_sensor(
         poke_interval=30,
         timeout=300,
         mode="reschedule",
     )
 
-    @task(templates_dict={
-        'start_date': '{{ data_interval_start.isoformat() }}',
-        'end_date': '{{ data_interval_end.isoformat() }}',
-    })
-    def get_tfl_road_disruptions(templates_dict):
-        endpoint = '/Road/all/Street/Disruption'
-        params = {
-            'startDate': templates_dict['start_date'],
-            'endDate': templates_dict['end_date'],
+    get_tfl_road_disruptions = make_get_data_task(
+        task_id='get_tfl_road_disruptions',
+        endpoint='/Road/all/Street/Disruption',
+        templated_params={
+            'startDate': '{{ data_interval_start.isoformat() }}',
+            'endDate': '{{ data_interval_end.isoformat() }}',
         }
-        return get_api_data(endpoint, params)
+    )
 
     check_api() >> get_tfl_road_disruptions()
 

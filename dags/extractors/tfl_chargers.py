@@ -2,8 +2,7 @@ from airflow.decorators import dag, task
 
 from pendulum import duration, datetime, UTC
 
-from include.helpers.api_client import get_api_data
-from include.tasks import make_check_api_task
+from include.tasks import make_check_api_task, make_get_data_task
 
 
 @dag(
@@ -26,11 +25,10 @@ def tfl_chargers():
 
     check_api = make_check_api_task()
 
-    @task()
-    def get_tfl_chargers():
-        endpoint = '/Place/Type/ChargeConnector'
-        return  get_api_data(endpoint)
-
+    get_tfl_chargers = make_get_data_task(
+        task_id='get_tfl_chargers',
+        endpoint='/Place/Type/ChargeConnector'
+    )
 
     check_api() >> get_tfl_chargers()
 
