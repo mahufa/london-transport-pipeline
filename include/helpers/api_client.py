@@ -7,7 +7,7 @@ from airflow.providers.http.hooks.http import HttpHook
 def get_api_data(
     endpoint: str,
     params: dict = None,
-) -> dict:
+) -> str:
     api = _get_api_hook()
     response = api.run(
         endpoint=endpoint,
@@ -16,13 +16,13 @@ def get_api_data(
     return response.json()
 
 
-def is_api_available() -> bool:
+def is_api_available(test_endpoint) -> bool:
     from requests import RequestException
 
     try:
         api = _get_api_hook()
         api.run(
-            endpoint='/Line/Meta/Modes',
+            endpoint=test_endpoint,
             extra_options={'timeout': (3.0, 5.0)},
         )
     except (RequestException, AirflowException):
