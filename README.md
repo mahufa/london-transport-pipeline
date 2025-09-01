@@ -7,13 +7,12 @@ End-to-end data engineering project using Transport for London (TfL) data to bui
 Python · Airflow (Astronomer Runtime, Docker) · AWS S3 · PostgreSQL (DW) · Pandas · Metabase
 
 ## Data Sources (TfL)
-- `BikePoint` (bike docking availability)
-- `AccidentStats` (historical collisions)
-- `Line`/`NetworkStatus` (service disruptions)
-- `Road` (road disruptions)
+- `BikePoints` (bike docking availability)
+- `Chargers` (historical collisions)
+- `Roads` (road disruptions)
 
 ## Architecture
-Extract (TfL API) → land raw JSON in S3 → transform with Pandas → load star schema to Postgres → visualize in Metabase.
+Extract (TfL API) → land raw JSON in S3 → transform with Pandas → stage in S3 → load star schema to Postgres → visualize in Metabase.
 
 ## Status
 **Development**
