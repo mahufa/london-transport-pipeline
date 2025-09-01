@@ -1,8 +1,8 @@
-from airflow.decorators import dag, task
+from airflow.decorators import dag
 
 from pendulum import duration, datetime
 
-from include.tasks import make_check_api_task, make_get_data_task
+from include.tasks import make_check_api_sensor, make_get_data_task, make_store_data_task
 
 
 @dag(
@@ -30,7 +30,6 @@ def tfl_roads():
     )
 
     get_tfl_road_disruptions = make_get_data_task(
-        task_id='get_tfl_road_disruptions',
         endpoint='/Road/all/Street/Disruption',
         templated_params={
             'startDate': '{{ data_interval_start.isoformat() }}',
@@ -38,7 +37,11 @@ def tfl_roads():
         }
     )
 
-    check_api() >> get_tfl_road_disruptions()
+    store_road_disruptions = make_store_data_task(
+        dir_name='road-disruptions'
+    )
+
+    check_api() >> get_tfl_road_disruptions() >> store_road_disruptions
 
 
 tfl_roads()
