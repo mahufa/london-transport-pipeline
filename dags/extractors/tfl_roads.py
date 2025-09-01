@@ -2,6 +2,7 @@ from airflow.decorators import dag
 
 from pendulum import duration, datetime
 
+from include.datasets import DATASET_ROADS
 from include.tasks import make_check_api_sensor, make_get_data_task, make_store_data_task
 
 
@@ -38,10 +39,11 @@ def tfl_roads():
     )
 
     store_road_disruptions = make_store_data_task(
-        dir_name='road-disruptions'
+        dir_name='road-disruptions',
+        dataset = DATASET_ROADS,
     )
 
-    check_api() >> get_tfl_road_disruptions() >> store_road_disruptions
+    check_api() >> get_tfl_road_disruptions() >> store_road_disruptions()
 
 
 tfl_roads()

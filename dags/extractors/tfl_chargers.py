@@ -2,6 +2,7 @@ from airflow.decorators import dag
 
 from pendulum import duration, datetime, UTC
 
+from include.datasets import DATASET_CHARGERS
 from include.tasks import make_check_api_sensor, make_get_data_task, make_store_data_task
 
 
@@ -30,7 +31,8 @@ def tfl_chargers():
     )
 
     store_chargers = make_store_data_task(
-        dir_name='chargers'
+        dir_name='chargers',
+        dataset=DATASET_CHARGERS,
     )
 
     check_api() >> get_tfl_chargers() >> store_chargers()

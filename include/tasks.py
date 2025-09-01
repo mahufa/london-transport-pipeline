@@ -1,19 +1,22 @@
 from typing import Callable
 
+from airflow.datasets import Dataset
 from airflow.decorators import task
 from airflow.sensors.base import PokeReturnValue
 
 
 def make_store_data_task(
     dir_name: str,
-    upstream_task_id: str = "_get_data_task"
+    dataset: Dataset,
+    upstream_task_id: str = "_get_data_task",
 ) -> Callable:
 
     @task(
         templates_dict={
             'data': f'{{{{ ti.xcom_pull(task_ids="{upstream_task_id}") }}}}',
             'path': f'{dir_name}/raw/{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'
-        }
+        },
+        outlets=[dataset],
     )
     def _store_data_task(templates_dict) -> str:
         from include.helpers.storage import store_str_in_s3
