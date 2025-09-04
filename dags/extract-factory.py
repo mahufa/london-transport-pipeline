@@ -2,6 +2,7 @@ from airflow.decorators import dag
 
 from pendulum import duration
 
+from include.callbacks import notify_teams
 from include.dag_config import ExtractDagConfig
 from include.datasets import DATASET_CHARGERS, DATASET_ROADS, DATASET_BIKES
 from include.tasks import make_check_api_sensor, make_get_data_task, make_store_data_task
@@ -15,7 +16,10 @@ def make_extract_dag(config: ExtractDagConfig):
         catchup=False,
         description=f"This DAG extracts {config.dag_id} data",
         tags=["tfl", "extract", config.tag],
-        default_args={"retries": config.retries},
+        default_args={
+            "retries": config.retries,
+            "on_failure_callback": notify_teams,
+        },
         dagrun_timeout=config.dagrun_timeout,
         max_consecutive_failed_dag_runs=2,
     )
