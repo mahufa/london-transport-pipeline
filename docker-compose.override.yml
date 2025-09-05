@@ -7,6 +7,18 @@ services:
   scheduler:
     networks:
       - ndsnet
+    command:
+      - /bin/bash
+      - -c
+      - |
+        airflow db upgrade
+        echo "Creating TFL API connection..."
+        airflow connections add 'tfl_api' \
+          --conn-type 'http' \
+          --conn-host 'api.tfl.gov.uk' \
+          --conn-schema 'https'
+        airflow scheduler
+
 
   triggerer:
     networks:
