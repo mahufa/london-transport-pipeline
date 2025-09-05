@@ -5,18 +5,39 @@ from airflow.decorators import task
 from airflow.sensors.base import PokeReturnValue
 
 
+def make_emit_dataset_task(
+    dataset: Dataset,
+    upstream_task_id: str = '_store_data_task',
+) -> Callable:
+
+    @task(
+        templates_dict={
+            'path': f'{{{{ ti.xcom_pull(task_ids="{upstream_task_id}") }}}}'
+        },
+        outlets=[dataset],
+    )
+    def _emit_dataset_task(templates_dict):
+        from airflow.datasets.metadata import Metadata
+        from include.datasets import PATH_KEY
+
+        yield Metadata(
+            target=dataset,
+            extra={PATH_KEY: templates_dict['path']}
+        )
+
+    return _emit_dataset_task
+
+
 def make_store_data_task(
     dir_name: str,
-    dataset: Dataset,
-    upstream_task_id: str = "_get_data_task",
+    upstream_task_id: str = '_get_data_task',
 ) -> Callable:
 
     @task(
         templates_dict={
             'data': f'{{{{ ti.xcom_pull(task_ids="{upstream_task_id}") }}}}',
-            'path': f'{dir_name}/raw/{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'
+            'path': f'{dir_name}{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'
         },
-        outlets=[dataset],
     )
     def _store_data_task(templates_dict) -> str:
         from include.helpers.storage import store_str_in_s3

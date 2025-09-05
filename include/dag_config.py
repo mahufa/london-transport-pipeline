@@ -4,6 +4,8 @@ from airflow.datasets import Dataset
 from pendulum import datetime, Duration, DateTime, UTC, duration
 
 
+START_DATE = datetime(2025, 6, 1).astimezone(UTC)
+
 @dataclass
 class ExtractDagConfig:
     dag_id: str
@@ -15,4 +17,4 @@ class ExtractDagConfig:
     dagrun_timeout: Duration = duration(minutes=10)
     custom_api_sensor: Optional[Callable] = None
     retries: int = 2
-    start_date: DateTime =datetime(2025, 6, 1).astimezone(UTC)
+    start_date: DateTime = START_DATE
