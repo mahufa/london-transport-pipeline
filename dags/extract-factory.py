@@ -5,7 +5,7 @@ from pendulum import duration
 from include.callbacks import notify_teams
 from include.dag_config import ExtractDagConfig
 from include.datasets import DATASET_CHARGERS, DATASET_ROADS, DATASET_BIKES
-from include.tasks.extract_tasks import make_check_api_sensor, make_get_data_task, make_store_data_task
+from include.tasks.extract_tasks import make_check_api_sensor, make_get_data_task, make_store_data_task, make_emit_dataset_task
 
 
 def make_extract_dag(config: ExtractDagConfig):
@@ -33,11 +33,14 @@ def make_extract_dag(config: ExtractDagConfig):
         )
 
         store_data = make_store_data_task(
-            dir_name=config.dag_id,
-            dataset=config.dataset,
+            dir_name=config.dataset.uri,
         )
 
-        check_api() >> get_data() >> store_data()
+        emit_data = make_emit_dataset_task(
+            dataset=config.dataset
+        )
+
+        check_api() >> get_data() >> store_data() >> emit_data()
 
     return extract()
 
