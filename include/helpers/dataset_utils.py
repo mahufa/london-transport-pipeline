@@ -3,6 +3,10 @@ from airflow.models.dataset import DatasetEvent
 from include.datasets import PATH_KEY
 
 
+def get_dataset_short_name(dataset_uri: str) -> str:
+    return dataset_uri.split(sep="/")[0]
+
+
 def get_events_paths(triggering_dataset_events: dict) -> dict[str, list[str]]:
     paths_grouped_by_datasets = {
         dataset_uri: _get_paths_from_events_list(event_list)
