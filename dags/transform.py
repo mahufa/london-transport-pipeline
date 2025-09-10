@@ -4,7 +4,7 @@ from pendulum import duration
 from include.callbacks import notify_teams
 from include.dag_config import START_DATE
 from include.datasets import DATASET_BIKES, DATASET_CHARGERS, DATASET_ROADS
-from include.tasks.transform_tasks import make_get_paths_to_raw_task
+from include.tasks.transform_tasks import make_get_paths_to_raw_task, build_dataset_flow
 
 
 # TODO:
@@ -34,7 +34,13 @@ from include.tasks.transform_tasks import make_get_paths_to_raw_task
 def transform():
     get_paths_to_raw = make_get_paths_to_raw_task()
 
-    get_paths_to_raw()
+    process_bikes = build_dataset_flow(DATASET_BIKES)
+    process_chargers = build_dataset_flow(DATASET_CHARGERS)
+    process_roads = build_dataset_flow(DATASET_ROADS)
+
+
+    get_paths_to_raw() >> [process_bikes(), process_chargers(), process_roads()]
+
 
 
 transform()
