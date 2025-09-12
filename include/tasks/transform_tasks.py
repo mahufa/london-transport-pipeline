@@ -18,8 +18,10 @@ def build_dataset_flow(
     def _process_dataset():
         paths = _make_extract_dataset_paths_task(dataset, upstream_task_id)
         fetch_data = _make_fetch_stored_raw_task(dataset)
+        prepare_data = _make_prepare_data_task(dataset)
 
-        fetch_data.expand(path=paths())
+        fetched = fetch_data.expand(path=paths())
+        prepare_data.expand(raw_data=fetched)
 
     return _process_dataset
 
@@ -33,6 +35,22 @@ def make_get_paths_to_raw_task() -> Callable:
         return get_events_paths(triggering_dataset_events)
 
     return _get_paths_to_raw
+
+
+def _make_prepare_data_task(
+    dataset: Dataset
+) -> Callable:
+
+    @task(
+        task_id=f'prepare__{get_dataset_short_name(dataset.uri)}',
+    )
+    def _prepare_data(raw_data: str) -> bytes:
+        from include.transformers import DatasetTransformer
+
+        transformer = DatasetTransformer.for_dataset(dataset.uri)
+        return transformer.prepare_to_load(raw_data)
+
+    return _prepare_data
 
 
 def _make_fetch_stored_raw_task(
