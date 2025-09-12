@@ -7,23 +7,33 @@ from include.helpers.dataset_utils import get_dataset_short_name
 
 
 
-def build_dataset_flow(
-    dataset: Dataset,
-    upstream_task_id: str = '_get_paths_to_raw',
-):
+def build_dataset_flow(dataset: Dataset) -> Callable:
 
     @task_group(
         group_id=f'process__{get_dataset_short_name(dataset.uri)}'
     )
-    def _process_dataset():
-        paths = _make_extract_dataset_paths_task(dataset, upstream_task_id)
-        fetch_data = _make_fetch_stored_raw_task(dataset)
+    def _process_dataset(paths: list[str]):
+        fetch_raw = _make_fetch_stored_raw_task(dataset)
         prepare_data = _make_prepare_data_task(dataset)
 
-        fetched = fetch_data.expand(path=paths())
+        fetched = fetch_raw.expand(path=paths)
         prepare_data.expand(raw_data=fetched)
 
     return _process_dataset
+
+
+def make_extract_dataset_paths_task(
+    dataset: Dataset,
+) -> Callable:
+
+    @task(
+        task_id=f'extract_paths_to__{get_dataset_short_name(dataset.uri)}',
+    )
+    def _extract_dataset_paths(all_paths: dict[str, list[str]]) -> list[str]:
+        specific_dataset_paths = all_paths.get(dataset.uri, [])
+        return specific_dataset_paths
+
+    return _extract_dataset_paths
 
 
 def make_get_paths_to_raw_task() -> Callable:
@@ -66,19 +76,3 @@ def _make_fetch_stored_raw_task(
         return read_str_from_s3(path)
 
     return _fetch_stored_raw
-
-
-def _make_extract_dataset_paths_task(
-    dataset: Dataset,
-    upstream_task_id,
-) -> Callable:
-
-    @task(
-        task_id=f'extract_paths_to__{get_dataset_short_name(dataset.uri)}',
-    )
-    def _extract_dataset_paths(ti=None) -> list[str]:
-        all_paths = ti.xcom_pull(task_ids=upstream_task_id)
-        specific_dataset_paths = all_paths.get(dataset.uri, [])
-        return specific_dataset_paths
-
-    return _extract_dataset_paths
