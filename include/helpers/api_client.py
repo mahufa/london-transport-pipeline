@@ -8,12 +8,13 @@ def get_api_data(
     endpoint: str,
     params: dict = None,
 ) -> str:
+    from json import dumps
     api = _get_api_hook()
     response = api.run(
         endpoint=endpoint,
         data=params, #HttpHook expects GET params passed via `data=...`
     )
-    return response.json()
+    return dumps(response.json())
 
 
 def is_api_available(test_endpoint) -> bool:

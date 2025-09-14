@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from pandas import DataFrame
 
+from include.transformers.bike_points.bike_points import clean_bike_points
+
 
 class DatasetTransformer(ABC):
     @staticmethod
@@ -21,17 +23,14 @@ class DatasetTransformer(ABC):
     def _clean(self, raw_data: str) -> DataFrame:
         raise NotImplementedError
 
-    @abstractmethod
     def _aggregate(self, cleaned_data: DataFrame) -> DataFrame:
-        raise NotImplementedError
+        """Only if needed"""
+        return cleaned_data
 
 
 class BikeTransformer(DatasetTransformer):
     def _clean(self, raw_data: str) -> DataFrame:
-        pass
-
-    def _aggregate(self, cleaned_data: DataFrame) -> DataFrame:
-        pass
+        return clean_bike_points(raw_data)
 
 
 class ChargerTransformer(DatasetTransformer):
