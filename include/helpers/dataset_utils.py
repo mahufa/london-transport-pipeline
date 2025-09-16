@@ -3,6 +3,12 @@ from airflow.models.dataset import DatasetEvent
 from include.datasets import PATH_KEY
 
 
+def get_path_to_staging(path_to_raw: str):
+    return (path_to_raw
+                .replace('raw', 'staging')
+                .replace('.json', '.csv'))
+
+
 def get_dataset_short_name(dataset_uri: str) -> str:
     return dataset_uri.split(sep="/")[0]
 
