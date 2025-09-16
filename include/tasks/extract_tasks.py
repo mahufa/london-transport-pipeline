@@ -1,26 +1,7 @@
 from typing import Callable
 
-from airflow.datasets import Dataset
 from airflow.decorators import task
 from airflow.sensors.base import PokeReturnValue
-
-
-def make_emit_dataset_task(
-    dataset: Dataset,
-    upstream_task_id: str = '_ingest_data_task',
-) -> Callable:
-
-    @task(outlets=[dataset])
-    def _emit_dataset_task(ti):
-        from airflow.datasets.metadata import Metadata
-        from include.datasets import PATH_KEY
-
-        yield Metadata(
-            target=dataset,
-            extra={PATH_KEY: ti.xcom_pull(task_ids=upstream_task_id)},
-        )
-
-    return _emit_dataset_task
 
 
 def make_ingest_data_task(

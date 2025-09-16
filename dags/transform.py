@@ -3,7 +3,7 @@ from pendulum import duration
 
 from include.callbacks import notify_teams
 from include.dag_config import START_DATE
-from include.datasets import DATASET_BIKES, DATASET_CHARGERS, DATASET_ROADS, ALL_DATASETS
+from include.datasets import DATASET_E_BIKES, DATASET_E_CHARGERS, DATASET_E_ROADS, EXTRACT_DATASETS
 from include.tasks.transform_tasks import make_get_paths_to_raw_task, build_dataset_flow,make_extract_dataset_paths_task
 
 
@@ -20,7 +20,7 @@ from include.tasks.transform_tasks import make_get_paths_to_raw_task, build_data
 @dag(
     dag_id='transformer',
     start_date=START_DATE,
-    schedule=(DATASET_BIKES | DATASET_CHARGERS | DATASET_ROADS),
+    schedule=(DATASET_E_BIKES | DATASET_E_CHARGERS | DATASET_E_ROADS),
     catchup=False,
     description=f'This DAG transforms tfl data',
     tags=['tfl', 'transform'],
@@ -34,7 +34,7 @@ from include.tasks.transform_tasks import make_get_paths_to_raw_task, build_data
 def transform():
     all_paths = make_get_paths_to_raw_task()()
 
-    for dataset in ALL_DATASETS:
+    for dataset in EXTRACT_DATASETS:
         extract_dataset_paths = make_extract_dataset_paths_task(dataset)
         process_dataset = build_dataset_flow(dataset)
 
