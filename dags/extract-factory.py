@@ -4,7 +4,7 @@ from pendulum import duration
 
 from include.callbacks import notify_teams
 from include.dag_config import ExtractDagConfig
-from include.datasets import DATASET_E_CHARGERS, DATASET_E_ROADS, DATASET_E_BIKES
+from include.datasets import DATASETS
 from include.tasks.common_tasks import make_emit_dataset_task
 from include.tasks.extract_tasks import make_check_api_sensor, make_ingest_data_task
 
@@ -48,14 +48,14 @@ configs = [
         dag_id='tfl_bikes',
         tag='bikes',
         endpoint='/Place/Type/BikePoint',
-        dataset=DATASET_E_BIKES,
+        dataset=DATASETS.get('bike_points').raw,
     ),
 
     ExtractDagConfig(
         dag_id='tfl_chargers',
         tag='chargers',
         endpoint='/Place/Type/ChargeConnector',
-        dataset=DATASET_E_CHARGERS,
+        dataset=DATASETS.get('chargers').raw,
     ),
 
     ExtractDagConfig(
@@ -66,7 +66,7 @@ configs = [
             'startDate': '{{ data_interval_start.isoformat() }}',
             'endDate': '{{ data_interval_end.isoformat() }}',
         },
-        dataset=DATASET_E_ROADS,
+        dataset=DATASETS.get('roads').raw,
         schedule='@daily',
         dagrun_timeout=duration(hours=1),
         custom_api_sensor=lambda: make_check_api_sensor(

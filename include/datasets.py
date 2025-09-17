@@ -1,24 +1,31 @@
+from dataclasses import dataclass
+
 from airflow.datasets import Dataset
 
-DATASET_E_BIKES = Dataset('bike_points/raw/')
-DATASET_E_CHARGERS = Dataset('chargers/raw/')
-DATASET_E_ROADS = Dataset('roads/raw/')
 
-EXTRACT_DATASETS = [
-    DATASET_E_BIKES,
-    DATASET_E_CHARGERS,
-    DATASET_E_ROADS,
-]
+@dataclass(frozen=True)
+class LayerDatasets:
+    raw: Dataset
+    staging: Dataset
 
-DATASET_T_BIKES = Dataset('bike_points/staging/')
-DATASET_T_CHARGERS = Dataset('chargers/staging/')
-DATASET_T_ROADS = Dataset('roads/staging/')
 
-TRANSFORM_DATASETS = [
-    DATASET_T_BIKES,
-    DATASET_T_CHARGERS,
-    DATASET_T_ROADS,
-]
+DATASETS: dict[str, LayerDatasets] = {
+    "bike_points": LayerDatasets(
+        raw=Dataset("bike_points/raw/"),
+        staging=Dataset("bike_points/staging/"),
+    ),
+    "chargers": LayerDatasets(
+        raw=Dataset("chargers/raw/"),
+        staging=Dataset("chargers/staging/"),
+    ),
+    "roads": LayerDatasets(
+        raw=Dataset("roads/raw/"),
+        staging=Dataset("roads/staging/"),
+    ),
+}
+
+EXTRACT_DATASETS = [ds.raw for ds in DATASETS.values()]
+TRANSFORM_DATASETS = [ds.staging for ds in DATASETS.values()]
 
 
 PATH_KEY = 'file_path'
