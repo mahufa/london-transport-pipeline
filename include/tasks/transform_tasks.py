@@ -5,6 +5,7 @@ from airflow.decorators import task, task_group
 
 from include.datasets import LayerDatasets
 from include.helpers.dataset_utils import get_dataset_short_name
+from include.tasks.common_tasks import make_emit_dataset_task
 
 
 def build_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
@@ -14,8 +15,11 @@ def build_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
     )
     def _process_dataset(paths: list[str]):
         prepare_data = _make_prepare_data_task(layer_datasets.raw)
+        emit_data = make_emit_dataset_task(layer_datasets.staging)
 
         prepared = prepare_data.expand(path_to_raw=paths)
+        emit_data.expand(path=prepared)
+
 
     return _process_dataset
 
