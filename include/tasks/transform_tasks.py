@@ -54,25 +54,19 @@ def _make_prepare_data_task(
     @task(
         task_id=f'prepare__{get_dataset_short_name(dataset.uri)}',
     )
-    def _prepare_data(raw_data: str) -> bytes:
+    def _prepare_data(path_to_raw: str) -> str:
         from include.transformers import DatasetTransformer
+        from include.helpers.storage import read_str_from_s3, store_str_in_s3
+        from include.helpers.dataset_utils import get_path_to_staging
 
         transformer = DatasetTransformer.for_dataset(dataset.uri)
-        return transformer.prepare_to_load(raw_data)
+        raw_data = read_str_from_s3(path_to_raw)
+
+        transformed_csv = transformer.prepare_to_load(raw_data)
+        path_to_staging = get_path_to_staging(path_to_raw)
+
+        store_str_in_s3(transformed_csv, path_to_staging)
+
+        return path_to_staging
 
     return _prepare_data
-
-
-def _make_fetch_stored_raw_task(
-    dataset: Dataset
-) -> Callable:
-
-    @task(
-        task_id=f'fetch_stored__{get_dataset_short_name(dataset.uri)}',
-    )
-    def _fetch_stored_raw(path: str) -> str:
-        from include.helpers.storage import read_str_from_s3
-
-        return read_str_from_s3(path)
-
-    return _fetch_stored_raw
