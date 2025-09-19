@@ -1,10 +1,10 @@
-from pytest import approx
+import pandas as pd
+from pytest import approx, mark
 
 from include.transformers.bike_points.bike_points import clean_bike_points
 
 
-def test_clean():
-    raw = """
+raw = """
     [
       {
         "$type": "Tfl.Api.Presentation.Entities.Place, Tfl.Api.Presentation.Entities",
@@ -209,24 +209,46 @@ def test_clean():
         "lon": -0.197574
       }
     ]
-  """
+"""
 
+@mark.parametrize(
+    'bike_point_id, expected',
+    [
+        (
+            1,
+            dict(
+                common_name='River Street , Clerkenwell',
+                lat=51.529163,
+                lon=-0.10997,
+                nb_standard_bikes=1,
+                nb_e_bikes=0,
+                nb_empty_docks=15,
+                updated_at=pd.to_datetime('2025-09-12T14:36:21.533Z', format='ISO8601'),
+            ),
+        ),
+        (
+            2,
+            dict(
+                common_name='Phillimore Gardens, Kensington',
+                lat=51.499606,
+                lon=-0.197574,
+                nb_standard_bikes=1,
+                nb_e_bikes=4,
+                nb_empty_docks=31,
+                updated_at=pd.to_datetime('2025-09-12T15:06:15.683Z', format='ISO8601'),
+            ),
+        ),
+    ],
+)
+def test_clean(bike_point_id, expected):
     cleaned_df = clean_bike_points(raw)
+    row = cleaned_df.loc[cleaned_df['bike_point_id'] == bike_point_id].iloc[0]
 
-    assert cleaned_df.iloc[0]['id'] == 1
-    assert cleaned_df.iloc[0]['commonName'] == 'River Street , Clerkenwell'
-    assert cleaned_df.iloc[0]['NbStandardBikes'] == 1
-    assert cleaned_df.iloc[0]['NbEBikes'] == 0
-    assert cleaned_df.iloc[0]['NbEmptyDocks'] == 15
-    assert cleaned_df.iloc[0]['lat'] == approx(51.529163)
-    assert cleaned_df.iloc[0]['lon'] == approx(-0.10997)
-
-    assert cleaned_df.iloc[1]['id'] == 2
-    assert cleaned_df.iloc[1]['commonName'] == 'Phillimore Gardens, Kensington'
-    assert cleaned_df.iloc[1]['NbStandardBikes'] == 1
-    assert cleaned_df.iloc[1]['NbEBikes'] == 4
-    assert cleaned_df.iloc[1]['NbEmptyDocks'] == 31
-    assert cleaned_df.iloc[1]['lat'] == approx(51.499606)
-    assert cleaned_df.iloc[1]['lon'] == approx(-0.197574)
-
-
+    assert row['common_name'] == expected['common_name']
+    assert row['lat'] == approx(expected['lat'])
+    assert row['lon'] == approx(expected['lon'])
+    # from additional_props
+    assert row['nb_standard_bikes'] == expected['nb_standard_bikes']
+    assert row['nb_e_bikes'] == expected['nb_e_bikes']
+    assert row['nb_empty_docks'] == expected['nb_empty_docks']
+    assert row['updated_at'] == expected['updated_at']

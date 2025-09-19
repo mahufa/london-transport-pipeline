@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from pandas import DataFrame
 
 from include.transformers.bike_points.bike_points import clean_bike_points
+from include.transformers.chargers.chargers import clean_chargers
 
 
 class DatasetTransformer(ABC):
@@ -13,11 +14,13 @@ class DatasetTransformer(ABC):
 
         return transformer()
 
-    def prepare_to_load(self, raw_data: str) -> bytes:
+    def prepare_to_load(self, raw_data: str) -> str:
         cleaned = self._clean(raw_data)
         aggregated = self._aggregate(cleaned)
 
-        # return aggregated.to_parquet(index=False)
+        return aggregated.to_csv(
+            index=False,
+            columns=aggregated.columns)
 
     @abstractmethod
     def _clean(self, raw_data: str) -> DataFrame:
@@ -35,10 +38,10 @@ class BikeTransformer(DatasetTransformer):
 
 class ChargerTransformer(DatasetTransformer):
     def _clean(self, raw_data: str) -> DataFrame:
-        pass
+        return clean_chargers(raw_data)
 
     def _aggregate(self, cleaned_data: DataFrame) -> DataFrame:
-        pass
+        return cleaned_data
 
 
 class RoadTransformer(DatasetTransformer):
