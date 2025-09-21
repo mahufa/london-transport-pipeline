@@ -1,8 +1,8 @@
-from pandas import DataFrame, read_json, json_normalize, to_datetime
+import pandas as pd
 
 
-def read_necessary_columns(raw_data: str) -> DataFrame:
-    return read_json(
+def read_necessary_columns(raw_data: str) -> pd.DataFrame:
+    return pd.read_json(
                 raw_data.strip()
             ).drop(
                 labels=['$type', 'url', 'placeType', 'children', 'childrenUrls'],
@@ -11,10 +11,10 @@ def read_necessary_columns(raw_data: str) -> DataFrame:
 
 
 def reshape_additional_props(
-    df: DataFrame,
+    df: pd.DataFrame,
     prop_to_extract_date_from: str,
     props_to_drop: list[str],
-) -> DataFrame:
+) -> pd.DataFrame:
     return (
         explode_additional_props(df)
           .pipe(extract_fields_from_additional_props)
@@ -26,15 +26,15 @@ def reshape_additional_props(
     )
 
 
-def explode_additional_props(df: DataFrame) -> DataFrame:
+def explode_additional_props(df: pd.DataFrame) -> pd.DataFrame:
     return df.explode(
         column='additionalProperties',
         ignore_index=True,
     )
 
 
-def extract_fields_from_additional_props(df: DataFrame) -> DataFrame:
-    df_props = json_normalize(df['additionalProperties'])
+def extract_fields_from_additional_props(df: pd.DataFrame) -> pd.DataFrame:
+    df_props = pd.json_normalize(df['additionalProperties'])
 
     return (df.drop(
                     columns='additionalProperties',
@@ -44,9 +44,9 @@ def extract_fields_from_additional_props(df: DataFrame) -> DataFrame:
 
 
 def pivot_additional_props(
-        df: DataFrame,
+        df: pd.DataFrame,
         prop_to_extract_date_from: str,
-) -> DataFrame:
+) -> pd.DataFrame:
     modified_at_col = extract_modified_dates(df, prop_to_extract_date_from)
 
     return (
@@ -62,20 +62,20 @@ def pivot_additional_props(
 
 
 def extract_modified_dates(
-        df: DataFrame,
+        df: pd.DataFrame,
         prop_to_extraxt_date_from: str,
-) -> DataFrame:
+) -> pd.DataFrame:
     mask = df['key'] == prop_to_extraxt_date_from
     modified = df.loc[mask, ['id', 'modified']].set_index('id')
-    modified['modified'] = to_datetime(modified['modified'], format='ISO8601')
+    modified['modified'] = pd.to_datetime(modified['modified'], format='ISO8601')
     modified.rename(columns={'modified':'updated_at'}, inplace=True)
 
     return modified
 
 
 def normalize_column_names(
-    df: DataFrame,
-) -> DataFrame:
+    df: pd.DataFrame,
+) -> pd.DataFrame:
     """Should be used in last .pipe()"""
 
     df.columns = [_normalize_column_name(c) for c in df.columns]

@@ -1,9 +1,9 @@
-from pandas import DataFrame
+import pandas as pd
 
 from include.transformers.common import read_necessary_columns, reshape_additional_props, normalize_column_names
 
 
-def clean_bike_points(raw_data: str) -> DataFrame:
+def clean_bike_points(raw_data: str) -> pd.DataFrame:
     return (
         read_necessary_columns(raw_data)
             .pipe(
@@ -24,14 +24,14 @@ def clean_bike_points(raw_data: str) -> DataFrame:
     )
 
 
-def _adjust_id_column(df: DataFrame) -> DataFrame:
+def _adjust_id_column(df: pd.DataFrame) -> pd.DataFrame:
     df['id'] = df['id'].str.replace('BikePoints_', '').astype('int16')
     df.rename(columns={'id':'bike_point_id'}, inplace=True)
 
     return df
 
 
-def _parse_columns(df: DataFrame) -> DataFrame:
+def _parse_columns(df: pd.DataFrame) -> pd.DataFrame:
     cols_to_parse = ['NbBikes', 'NbStandardBikes', 'NbEBikes', 'NbEmptyDocks', 'NbDocks']
     df[cols_to_parse] = df[cols_to_parse].astype('int16')
 

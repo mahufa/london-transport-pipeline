@@ -1,14 +1,15 @@
+from json import dumps
 from logging import getLogger
 
 from airflow.exceptions import AirflowException
 from airflow.providers.http.hooks.http import HttpHook
+from requests import RequestException
 
 
 def get_api_data(
     endpoint: str,
     params: dict = None,
 ) -> str:
-    from json import dumps
     api = _get_api_hook()
     response = api.run(
         endpoint=endpoint,
@@ -18,8 +19,6 @@ def get_api_data(
 
 
 def is_api_available(test_endpoint) -> bool:
-    from requests import RequestException
-
     try:
         api = _get_api_hook()
         api.run(

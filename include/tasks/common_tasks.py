@@ -1,7 +1,10 @@
 from typing import Callable
 
 from airflow.datasets import Dataset
+from airflow.datasets.metadata import Metadata
 from airflow.decorators import task
+
+from include.datasets import PATH_KEY
 
 
 def make_emit_dataset_task(
@@ -10,9 +13,6 @@ def make_emit_dataset_task(
 
     @task(outlets=[dataset])
     def _emit_dataset_task(path: str):
-        from airflow.datasets.metadata import Metadata
-        from include.datasets import PATH_KEY
-
         yield Metadata(
             target=dataset,
             extra={PATH_KEY: path},

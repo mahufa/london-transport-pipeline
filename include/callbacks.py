@@ -1,5 +1,3 @@
-from logging import getLogger
-
 from airflow.providers.http.hooks.http import HttpHook
 
 
@@ -7,6 +5,8 @@ from airflow.providers.http.hooks.http import HttpHook
 #   move payload shape to airflow variables
 
 def notify_teams(context):
+    from logging import getLogger
+
     try:
         _post_details_to_teams(context)
     except Exception:

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from pandas import DataFrame
+
+import pandas as pd
 
 from include.transformers.bike_points.bike_points import clean_bike_points
 from include.transformers.chargers.chargers import clean_chargers
@@ -23,32 +24,32 @@ class DatasetTransformer(ABC):
             columns=aggregated.columns)
 
     @abstractmethod
-    def _clean(self, raw_data: str) -> DataFrame:
+    def _clean(self, raw_data: str) -> pd.DataFrame:
         raise NotImplementedError
 
-    def _aggregate(self, cleaned_data: DataFrame) -> DataFrame:
+    def _aggregate(self, cleaned_data: pd.DataFrame) -> pd.DataFrame:
         """Only if needed"""
         return cleaned_data
 
 
 class BikeTransformer(DatasetTransformer):
-    def _clean(self, raw_data: str) -> DataFrame:
+    def _clean(self, raw_data: str) -> pd.DataFrame:
         return clean_bike_points(raw_data)
 
 
 class ChargerTransformer(DatasetTransformer):
-    def _clean(self, raw_data: str) -> DataFrame:
+    def _clean(self, raw_data: str) -> pd.DataFrame:
         return clean_chargers(raw_data)
 
-    def _aggregate(self, cleaned_data: DataFrame) -> DataFrame:
+    def _aggregate(self, cleaned_data: pd.DataFrame) -> pd.DataFrame:
         return cleaned_data
 
 
 class RoadTransformer(DatasetTransformer):
-    def _clean(self, raw_data: str) -> DataFrame:
+    def _clean(self, raw_data: str) -> pd.DataFrame:
         pass
 
-    def _aggregate(self, cleaned_data: DataFrame) -> DataFrame:
+    def _aggregate(self, cleaned_data: pd.DataFrame) -> pd.DataFrame:
         pass
 
 

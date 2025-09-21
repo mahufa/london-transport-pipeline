@@ -1,9 +1,9 @@
-from pandas import DataFrame, read_json, to_datetime
+import pandas as pd
 
 from include.transformers.common import normalize_column_names
 
 
-def clean_roads(raw_data: str) -> DataFrame:
+def clean_roads(raw_data: str) -> pd.DataFrame:
     return (_read_necessary_columns(raw_data)
             .pipe(_adjust_id_columns)
             .pipe(_parse_dt_columns)
@@ -11,15 +11,15 @@ def clean_roads(raw_data: str) -> DataFrame:
             )
 
 
-def _read_necessary_columns(raw_data: str) -> DataFrame:
-    return read_json(
+def _read_necessary_columns(raw_data: str) -> pd.DataFrame:
+    return pd.read_json(
                 raw_data.strip()
             ).drop(
                 labels=['$type', 'lineString', 'comments', 'levelOfInterest', 'recurringSchedules'],
                 axis='columns'
             )
 
-def _adjust_id_columns(df: DataFrame) -> DataFrame:
+def _adjust_id_columns(df: pd.DataFrame) -> pd.DataFrame:
     df['disruptionId'] = df['disruptionId'].str.replace('TIMS-', '').astype('int64')
     df.rename(
         columns={
@@ -30,7 +30,7 @@ def _adjust_id_columns(df: DataFrame) -> DataFrame:
     )
     return df
 
-def _parse_dt_columns(df: DataFrame) -> DataFrame:
-    df['startDateTime'] = to_datetime(df['startDateTime'], format='ISO8601')
-    df['endDateTime'] = to_datetime(df['endDateTime'], format='ISO8601')
+def _parse_dt_columns(df: pd.DataFrame) -> pd.DataFrame:
+    df['startDateTime'] = pd.to_datetime(df['startDateTime'], format='ISO8601')
+    df['endDateTime'] = pd.to_datetime(df['endDateTime'], format='ISO8601')
     return df
