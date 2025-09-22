@@ -1,3 +1,5 @@
+from re import sub
+
 import pandas as pd
 
 
@@ -73,7 +75,7 @@ def extract_modified_dates(
     return modified
 
 
-def normalize_column_names(
+def normalize_columns_names(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
     """Should be used in last .pipe()"""
@@ -83,8 +85,6 @@ def normalize_column_names(
 
 
 def _normalize_column_name(name: str) -> str:
-    from re import sub
-
     normalized_name = sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', name)
     normalized_name = sub(r"([a-z\d])([A-Z])", r'\1_\2', normalized_name)
 

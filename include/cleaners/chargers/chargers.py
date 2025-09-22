@@ -1,6 +1,6 @@
 import pandas as pd
 
-from include.transformers.common import read_necessary_columns, reshape_additional_props, normalize_column_names
+from include.cleaners.common import read_necessary_columns, reshape_additional_props, normalize_columns_names
 
 
 def clean_chargers(raw_data: str) -> pd.DataFrame:
@@ -19,7 +19,7 @@ def clean_chargers(raw_data: str) -> pd.DataFrame:
         )
         .pipe(_adjust_id_column)
         .pipe(_adjust_power_prop_column)
-        .pipe(normalize_column_names)
+        .pipe(normalize_columns_names)
     )
 
 

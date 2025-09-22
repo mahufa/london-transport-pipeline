@@ -1,14 +1,15 @@
 import pandas as pd
 
-from include.transformers.common import normalize_column_names
+from include.cleaners.common import normalize_columns_names
 
 
 def clean_roads(raw_data: str) -> pd.DataFrame:
-    return (_read_necessary_columns(raw_data)
-            .pipe(_adjust_id_columns)
-            .pipe(_parse_dt_columns)
-            .pipe(normalize_column_names)
-            )
+    return (
+        _read_necessary_columns(raw_data)
+        .pipe(_adjust_id_columns)
+        .pipe(_parse_dt_columns)
+        .pipe(normalize_columns_names)
+    )
 
 
 def _read_necessary_columns(raw_data: str) -> pd.DataFrame:

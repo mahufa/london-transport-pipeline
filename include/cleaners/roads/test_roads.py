@@ -1,7 +1,7 @@
 import pandas as pd
 from pytest import approx, mark
 
-from include.transformers.roads.roads import clean_roads
+from include.cleaners.roads.roads import clean_roads
 
 raw = """
     [

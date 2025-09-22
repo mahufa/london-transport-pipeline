@@ -1,7 +1,7 @@
 import pandas as pd
 from pytest import approx, mark
 
-from include.transformers.bike_points.bike_points import clean_bike_points
+from include.cleaners.bike_points.bike_points import clean_bike_points
 
 
 raw = """

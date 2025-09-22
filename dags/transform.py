@@ -7,15 +7,6 @@ from include.datasets import DATASETS
 from include.tasks.transform_tasks import make_get_paths_to_raw_task, build_dataset_flow,make_extract_dataset_paths_task
 
 
-# TODO:
-#  tasks:
-#   - branch by dataset:
-#       - clean
-#       - transform to csv
-#       - store to s3
-#       - emit dataset
-
-
 @dag(
     dag_id='transformer',
     start_date=START_DATE,
