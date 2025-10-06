@@ -26,6 +26,14 @@ services:
           --conn-schema 'https'
         echo "Setting dev bucket variable..."
         airflow variables set BUCKET_NAME tfl-data
+        echo "Creating postgres connection..."
+        airflow connections add 'postgres_dw' \
+          --conn-type 'postgres' \
+          --conn-host 'postgres_dw' \
+          --conn-login 'dw_user' \
+          --conn-password 'dw_password' \
+          --conn-schema 'tfl_dw' \
+          --conn-port '5432'
         airflow scheduler
 #
 
@@ -42,6 +50,7 @@ services:
     restart: always
     volumes:
       - ./include/data/postgres-dw:/postgres-dw-data
+      - ./db_init:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"
     networks:

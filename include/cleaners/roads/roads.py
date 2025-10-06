@@ -16,7 +16,14 @@ def _read_necessary_columns(raw_data: str) -> pd.DataFrame:
     return pd.read_json(
                 raw_data.strip()
             ).drop(
-                labels=['$type', 'lineString', 'comments', 'levelOfInterest', 'recurringSchedules'],
+                labels=[
+                    '$type',
+                    'lineString',
+                    'comments',
+                    'levelOfInterest',
+                    'location',
+                    'recurringSchedules',
+                ],
                 axis='columns'
             )
 
