@@ -3,6 +3,14 @@ from re import sub
 import pandas as pd
 
 
+def add_batch_id(
+    df: pd.DataFrame,
+    batch_id: str
+) -> pd.DataFrame:
+    df['batch_id'] = batch_id
+    return df
+
+
 def read_necessary_columns(raw_data: str) -> pd.DataFrame:
     return pd.read_json(
                 raw_data.strip()

@@ -1,14 +1,18 @@
 import pandas as pd
 
-from include.cleaners.common import normalize_columns_names
+from include.cleaners.common import normalize_columns_names, add_batch_id
 
 
-def clean_roads(raw_data: str) -> pd.DataFrame:
+def clean_roads(
+    raw_data: str,
+    batch_id: str
+) -> pd.DataFrame:
     return (
         _read_necessary_columns(raw_data)
         .pipe(_adjust_id_columns)
         .pipe(_parse_dt_columns)
         .pipe(normalize_columns_names)
+        .pipe(add_batch_id, batch_id)
     )
 
 

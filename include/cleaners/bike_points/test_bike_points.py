@@ -3,6 +3,7 @@ from pytest import approx, mark
 
 from include.cleaners.bike_points.bike_points import clean_bike_points
 
+batch_id = 'TEST-BATCH-ID'
 
 raw = """
     [
@@ -241,10 +242,11 @@ raw = """
     ],
 )
 def test_clean(bike_point_id, expected):
-    cleaned_df = clean_bike_points(raw)
+    cleaned_df = clean_bike_points(raw, batch_id)
     row = cleaned_df.loc[cleaned_df['bike_point_id'] == bike_point_id].iloc[0]
 
     assert row['common_name'] == expected['common_name']
+    assert row['batch_id'] == 'TEST-BATCH-ID'
     assert row['lat'] == approx(expected['lat'])
     assert row['lon'] == approx(expected['lon'])
     # from additional_props

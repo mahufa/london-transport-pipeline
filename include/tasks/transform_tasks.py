@@ -4,7 +4,7 @@ from airflow.datasets import Dataset
 from airflow.decorators import task, task_group
 
 from include.datasets import LayerDatasets
-from include.helpers.dataset_utils import get_dataset_short_name
+from include.helpers.dataset_utils import get_dataset_short_name, get_batch_id_from_path, get_path_to_staging
 from include.tasks.common_tasks import make_emit_dataset_task
 
 
@@ -34,12 +34,13 @@ def _make_prepare_data_task(
     def _prepare_data(path_to_raw: str) -> str:
         from include.cleaners import clean_dataset
         from include.helpers.storage import read_str_from_s3, store_str_in_s3
-        from include.helpers.dataset_utils import get_path_to_staging
 
         raw_data = read_str_from_s3(path_to_raw)
 
-        transformed_csv = clean_dataset(raw_dataset.uri, raw_data)
         path_to_staging = get_path_to_staging(path_to_raw)
+        batch_id = get_batch_id_from_path(path_to_staging)
+
+        transformed_csv = clean_dataset(raw_dataset.uri, raw_data, batch_id)
 
         store_str_in_s3(transformed_csv, path_to_staging)
 

@@ -1,9 +1,13 @@
 import pandas as pd
 
-from include.cleaners.common import read_necessary_columns, reshape_additional_props, normalize_columns_names
+from include.cleaners.common import read_necessary_columns, reshape_additional_props, normalize_columns_names, add_batch_id
 
 
-def clean_chargers(raw_data: str) -> pd.DataFrame:
+def clean_chargers(
+    raw_data: str,
+    batch_id: str
+) -> pd.DataFrame:
+    print(raw_data)
     return (
         read_necessary_columns(raw_data)
         .pipe(
@@ -11,15 +15,13 @@ def clean_chargers(raw_data: str) -> pd.DataFrame:
             prop_to_extract_date_from='Status',
             props_to_drop=[
                 'ConnectorDescription',
-                'Volts',
-                'Amps',
-                'Phase',
                 'LastUpdated',
             ],
         )
         .pipe(_adjust_id_column)
         .pipe(_adjust_power_prop_column)
         .pipe(normalize_columns_names)
+        .pipe(add_batch_id, batch_id)
     )
 
 

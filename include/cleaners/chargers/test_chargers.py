@@ -4,6 +4,7 @@ from pytest import approx, mark
 from include.cleaners.chargers.chargers import clean_chargers
 
 
+batch_id = 'TEST-BATCH-ID'
 
 raw = """
     [
@@ -110,33 +111,9 @@ raw = """
           {
             "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
             "category": "ElectricalCharacteristics",
-            "key": "Volts",
-            "sourceSystemKey": "ChargeMasterChargePoint",
-            "value": "400",
-            "modified": "2025-09-15T10:04:36.52Z"
-          },
-          {
-            "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
-            "category": "ElectricalCharacteristics",
-            "key": "Amps",
-            "sourceSystemKey": "ChargeMasterChargePoint",
-            "value": "125",
-            "modified": "2025-09-15T10:04:36.52Z"
-          },
-          {
-            "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
-            "category": "ElectricalCharacteristics",
             "key": "Power",
             "sourceSystemKey": "ChargeMasterChargePoint",
             "value": "50kW",
-            "modified": "2025-09-15T10:04:36.52Z"
-          },
-          {
-            "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
-            "category": "ElectricalCharacteristics",
-            "key": "Phase",
-            "sourceSystemKey": "ChargeMasterChargePoint",
-            "value": "DC",
             "modified": "2025-09-15T10:04:36.52Z"
           },
           {
@@ -189,10 +166,11 @@ raw = """
 )
 def test_clean(connector_id, expected):
 
-    cleaned_df = clean_chargers(raw)
+    cleaned_df = clean_chargers(raw, batch_id)
     row = cleaned_df.loc[cleaned_df['connector_id'] == connector_id].iloc[0]
 
     assert row['common_name'] == expected['common_name']
+    assert row['batch_id'] == 'TEST-BATCH-ID'
     assert row['lat'] == approx(expected['lat'])
     assert row['lon'] == approx(expected['lon'])
     # from additional_props:

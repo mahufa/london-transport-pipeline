@@ -3,6 +3,9 @@ from pytest import approx, mark
 
 from include.cleaners.roads.roads import clean_roads
 
+
+batch_id = 'TEST-BATCH-ID'
+
 raw = """
     [
       {
@@ -95,10 +98,11 @@ raw = """
 )
 def test_clean(disrupted_road_id, expected):
 
-    cleaned_df = clean_roads(raw)
+    cleaned_df = clean_roads(raw, batch_id)
     row = cleaned_df.loc[cleaned_df['disrupted_road_id'] == disrupted_road_id].iloc[0]
 
     assert row['disruption_id'] == expected['disruption_id']
+    assert row['batch_id'] == 'TEST-BATCH-ID'
     assert row['start_lat'] == approx(expected['start_lat'])
     assert row['start_lon'] == approx(expected['start_lon'])
     assert row['end_lat'] == approx(expected['end_lat'])

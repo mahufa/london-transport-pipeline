@@ -1,9 +1,13 @@
 import pandas as pd
 
-from include.cleaners.common import read_necessary_columns, reshape_additional_props, normalize_columns_names
+from include.cleaners.common import read_necessary_columns, reshape_additional_props, normalize_columns_names, \
+    add_batch_id
 
 
-def clean_bike_points(raw_data: str) -> pd.DataFrame:
+def clean_bike_points(
+    raw_data: str,
+    batch_id: str
+) -> pd.DataFrame:
     return (
         read_necessary_columns(raw_data)
         .pipe(
@@ -21,6 +25,7 @@ def clean_bike_points(raw_data: str) -> pd.DataFrame:
         .pipe(_adjust_id_column)
         .pipe(_parse_columns)
         .pipe(normalize_columns_names)
+        .pipe(add_batch_id, batch_id)
     )
 
 
