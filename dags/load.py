@@ -29,4 +29,11 @@ from include.tasks.load_tasks import build_staging_dataset_flow
 def load():
     all_staging_paths = make_get_paths_to_triggering_data_task()()
 
+    for layer_datasets in DATASETS.values():
+        extract_dataset_paths = make_extract_dataset_paths_task(layer_datasets.staging)
+        load_dataset = build_staging_dataset_flow(layer_datasets)
+
+        load_dataset(
+            paths=extract_dataset_paths(all_staging_paths)
+        )
 load()

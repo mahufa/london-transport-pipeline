@@ -2,6 +2,14 @@ from airflow.models import Variable
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 
 
+def get_s3_obj(path: str):
+    hook = _get_s3_hook()
+    return hook.get_key(
+        key=path,
+        bucket_name=Variable.get('BUCKET_NAME'),
+    )
+
+
 def read_str_from_s3(path: str) -> str:
     hook = _get_s3_hook()
     return hook.read_key(

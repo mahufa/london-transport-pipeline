@@ -7,7 +7,6 @@ def clean_chargers(
     raw_data: str,
     batch_id: str
 ) -> pd.DataFrame:
-    print(raw_data)
     return (
         read_necessary_columns(raw_data)
         .pipe(
