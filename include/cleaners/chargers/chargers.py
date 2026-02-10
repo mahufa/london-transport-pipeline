@@ -1,6 +1,6 @@
 import pandas as pd
 
-from include.cleaners.common import read_necessary_columns, reshape_additional_props, normalize_columns_names, add_batch_id
+from include.cleaners.common import read_necessary_columns, reshape, normalize_columns_names, add_batch_id
 
 
 def clean_chargers(
@@ -9,14 +9,7 @@ def clean_chargers(
 ) -> pd.DataFrame:
     return (
         read_necessary_columns(raw_data)
-        .pipe(
-            reshape_additional_props,
-            prop_to_extract_date_from='Status',
-            props_to_drop=[
-                'ConnectorDescription',
-                'LastUpdated',
-            ],
-        )
+        .pipe(reshape)
         .pipe(_adjust_id_column)
         .pipe(_adjust_power_prop_column)
         .pipe(normalize_columns_names)

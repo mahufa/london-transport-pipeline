@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 
 from include.cleaners.common import normalize_columns_names, add_batch_id
@@ -17,9 +19,8 @@ def clean_roads(
 
 
 def _read_necessary_columns(raw_data: str) -> pd.DataFrame:
-    return pd.read_json(
-                raw_data.strip()
-            ).drop(
+    data = json.loads(raw_data)
+    return pd.DataFrame(data).drop(
                 labels=[
                     '$type',
                     'lineString',
@@ -33,14 +34,12 @@ def _read_necessary_columns(raw_data: str) -> pd.DataFrame:
 
 def _adjust_id_columns(df: pd.DataFrame) -> pd.DataFrame:
     df['disruptionId'] = df['disruptionId'].str.replace('TIMS-', '').astype('int64')
-    df.rename(
+    return df.rename(
         columns={
             'distruptedStreetId': 'disrupted_road_id', # original spelling from TfL
             'disruptedStreetId': 'disrupted_road_id', # if they decide to correct
-        },
-        inplace=True
+        }
     )
-    return df
 
 def _parse_dt_columns(df: pd.DataFrame) -> pd.DataFrame:
     df['startDateTime'] = pd.to_datetime(df['startDateTime'], format='ISO8601')
