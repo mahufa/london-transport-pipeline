@@ -25,6 +25,7 @@ from include.tasks.load_tasks import build_staging_dataset_flow
     },
     dagrun_timeout=duration(minutes=10),
     max_consecutive_failed_dag_runs=2,
+    template_searchpath=[f'/usr/local/airflow/include']
 )
 def load():
     all_staging_paths = make_get_paths_to_triggering_data_task()()

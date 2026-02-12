@@ -3,6 +3,9 @@ from botocore.response import StreamingBody
 from psycopg2._psycopg import connection
 
 
+POSTGRES_CONN_ID = 'postgres_dw'
+
+
 def copy_s3_obj_to_postgres(
     s3_obj,
     table_name: str,
@@ -46,5 +49,5 @@ def _get_pg_conn() -> connection:
 
 def _get_pg_hook() -> PostgresHook:
     return PostgresHook(
-        postgres_conn_id='postgres_dw',
+        postgres_conn_id=POSTGRES_CONN_ID,
     )
