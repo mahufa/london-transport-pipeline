@@ -42,6 +42,13 @@ def reshape(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def drop_unwanted_props(
+    df: pd.DataFrame,
+    unwanted_columns: list[str],
+) -> pd.DataFrame:
+    return df.drop(unwanted_columns, axis=1)
+
+
 def normalize_columns_names(
     df: pd.DataFrame,
 ) -> pd.DataFrame:

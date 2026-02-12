@@ -1,16 +1,24 @@
 import pandas as pd
 
-from include.cleaners.common import read_necessary_columns, reshape, normalize_columns_names, \
-    add_batch_id
+from include.cleaners.common import read_necessary_columns, reshape, normalize_columns_names, add_batch_id, drop_unwanted_props
 
 
 def clean_bike_points(
     raw_data: str,
     batch_id: str
 ) -> pd.DataFrame:
+    unwanted_props = [
+        'InstallDate',
+        'Installed',
+        'Locked',
+        'RemovalDate',
+        'Temporary',
+        'TerminalName',
+    ]
     return (
         read_necessary_columns(raw_data)
             .pipe(reshape)
+            .pipe(drop_unwanted_props, unwanted_props)
             .pipe(_adjust_id_column)
             .pipe(_parse_columns)
             .pipe(normalize_columns_names)
