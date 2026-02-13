@@ -32,14 +32,14 @@ ALTER TABLE fct_disrupted_segment ADD CONSTRAINT fct_disrupted_segment_dim_closu
 
 ALTER TABLE fct_disrupted_segment ADD CONSTRAINT fct_disrupted_segment_dim_disruption
     FOREIGN KEY (disruption_id)
-    REFERENCES dim_disruption (disruption_tfl_id)
+    REFERENCES dim_disruption (id)
     NOT DEFERRABLE
     INITIALLY IMMEDIATE
 ;
 
 
 ALTER TABLE fct_disrupted_segment ADD CONSTRAINT fct_disrupted_segment_dim_street
-    FOREIGN KEY (street_id)
+    FOREIGN KEY (segment_id)
     REFERENCES dim_street_segment (id)
     NOT DEFERRABLE
     INITIALLY IMMEDIATE

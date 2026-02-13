@@ -139,7 +139,7 @@ raw = """
         (
             'UT05X7-3',
             dict(
-                common_name='21 Bridge Road Station UT05X7 Connector 3',
+                station_name='21 Bridge Road Station UT05X7',
                 lat=51.564362,
                 lon=-0.278134,
                 connector_type='Type 2',
@@ -152,7 +152,7 @@ raw = """
         (
             '24122-61977',
             dict(
-                common_name='16 Talgarth Road Station 24122 Connector 1',
+                station_name='16 Talgarth Road Station 24122',
                 lat=51.490597,
                 lon=-0.207703,
                 connector_type='CCS',
@@ -169,7 +169,7 @@ def test_clean(connector_id, expected):
     cleaned_df = clean_chargers(raw, batch_id)
     row = cleaned_df.loc[cleaned_df['connector_id'] == connector_id].iloc[0]
 
-    assert row['common_name'] == expected['common_name']
+    assert row['station_name'] == expected['station_name']
     assert row['batch_id'] == 'TEST-BATCH-ID'
     assert row['lat'] == approx(expected['lat'])
     assert row['lon'] == approx(expected['lon'])
