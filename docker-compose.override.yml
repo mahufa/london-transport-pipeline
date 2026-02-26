@@ -1,5 +1,4 @@
 services:
-
   webserver:
     networks:
       - ndsnet
@@ -7,35 +6,6 @@ services:
   scheduler:
     networks:
       - ndsnet
-#  dev-branch only:
-    command:
-      - /bin/bash
-      - -c
-      - |
-        airflow db upgrade
-        echo "Creating MinIO connection..."
-        airflow connections add 's3_conn' \
-          --conn-type 'aws' \
-          --conn-login 'minio' \
-          --conn-password 'minio123' \
-          --conn-extra '{"endpoint_url": "http://minio:9000"}'
-        echo "Creating TFL API connection..."
-        airflow connections add 'tfl_api' \
-          --conn-type 'http' \
-          --conn-host 'api.tfl.gov.uk' \
-          --conn-schema 'https'
-        echo "Setting dev bucket variable..."
-        airflow variables set BUCKET_NAME tfl-data
-        echo "Creating postgres connection..."
-        airflow connections add 'postgres_dw' \
-          --conn-type 'postgres' \
-          --conn-host 'postgres_dw' \
-          --conn-login 'dw_user' \
-          --conn-password 'dw_password' \
-          --conn-schema 'tfl_dw' \
-          --conn-port '5432'
-        airflow scheduler
-#
 
   triggerer:
     networks:
@@ -56,17 +26,6 @@ services:
     networks:
       - ndsnet
 
-  metabase:
-    image: metabase/metabase:v0.52.8.4
-    restart: always
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./include/data/metabase:/metabase-data
-    networks:
-      - ndsnet
-
-#  dev-branch only:
   minio:
     image: minio/minio:RELEASE.2024-06-13T22-53-53Z
     container_name: minio
@@ -96,7 +55,6 @@ services:
       retries: 3
     networks:
       - ndsnet
-#
 
 networks:
   ndsnet:

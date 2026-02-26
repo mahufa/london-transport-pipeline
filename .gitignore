@@ -2,7 +2,6 @@
 .env
 .DS_Store
 .idea
-airflow_settings.yaml
 __pycache__/
 astro
 .venv

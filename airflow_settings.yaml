@@ -1,0 +1,21 @@
+airflow:
+  connections:
+    - conn_id: s3_conn
+      conn_type: aws
+      conn_login: minio
+      conn_password: minio123
+      conn_extra: '{"endpoint_url": "http://minio:9000"}'
+    - conn_id: tfl_api
+      conn_type: http
+      conn_host: api.tfl.gov.uk
+      conn_schema: https
+    - conn_id: postgres_dw
+      conn_type: postgres
+      conn_host: postgres_dw
+      conn_login: dw_user
+      conn_password: dw_password
+      conn_schema: tfl_dw
+      conn_port: 5432
+  variables:
+    - variable_name: BUCKET_NAME
+      variable_value: tfl-data
