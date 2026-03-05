@@ -1,0 +1,26 @@
+name: Domain Tests
+on: [push]
+
+jobs:
+  test-domain:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target_dir:
+          - include/cleaners/bike_points
+          - include/cleaners/chargers
+          - include/cleaners/roads
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install pandas pytest
+
+      - name: Test ${{ matrix.target_dir }}
+        env:
+          PYTHONPATH: .
+        run: pytest ${{ matrix.target_dir }}
