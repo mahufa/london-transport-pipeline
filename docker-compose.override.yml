@@ -19,7 +19,7 @@ services:
       POSTGRES_DB: tfl_dw
     restart: always
     volumes:
-      - ./include/data/postgres-dw:/postgres-dw-data
+      - postgres_dw_data:/postgres-dw-data
       - ./db_init:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"
@@ -32,7 +32,7 @@ services:
     hostname: minio
     restart: always
     volumes:
-      - ./include/data/minio:/data
+      - minio_data:/data
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -59,3 +59,7 @@ services:
 networks:
   ndsnet:
     driver: bridge
+
+volumes:
+  minio_data:
+  postgres_dw_data:
