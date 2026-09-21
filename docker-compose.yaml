@@ -84,6 +84,10 @@ services:
       - ./db_init:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U dw_user -d tfl_dw -c 'SELECT 1'"]
+      interval: 5s
+      retries: 5
     networks:
       - tfl_net
 
