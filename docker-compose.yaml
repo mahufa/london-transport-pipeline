@@ -20,7 +20,6 @@ x-airflow-common:
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
-    - ./plugins:/opt/airflow/plugins
     - ./include:/opt/airflow/include
   depends_on:
     postgres-airflow:
@@ -89,7 +88,7 @@ services:
       - tfl_net
 
   minio:
-    image: minio/minio:RELEASE.2024-06-13T22-53-53Z
+    image: quay.io/minio/minio:RELEASE.2024-06-13T22-53-53Z
     container_name: minio_storage
     hostname: minio
     restart: always
@@ -111,7 +110,7 @@ services:
       - tfl_net
 
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
     depends_on:
       minio:
         condition: service_healthy
