@@ -1,0 +1,137 @@
+x-bucket-names:
+  tfl: &tfl-data "tfl-data"
+
+x-airflow-common:
+  &airflow-common
+  build: .
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: false
+    AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS: false
+    AIRFLOW_CONN_TFL_API: '{
+    "conn_type": "http",
+     "host": "api.tfl.gov.uk", "schema":"https"}'
+    AIRFLOW_CONN_POSTGRES_DW: '{"conn_type": "postgres", "host": "postgres_dw", "login": "dw_user", "password": "dw_password", "schema": "tfl_dw",  "port": 5432}'
+    AIRFLOW_CONN_S3_CONN: '{"conn_type": "aws", "login": "minio", "password": "minio123", "extra": {"endpoint_url": "http://minio:9000"}}'
+    AIRFLOW_VAR_BUCKET_NAME: *tfl-data
+    PYTHONPATH: '/opt/airflow'
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./include:/opt/airflow/include
+  depends_on:
+    postgres-airflow:
+      condition: service_healthy
+  networks:
+    - tfl_net
+
+services:
+  postgres-airflow:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    networks:
+      - tfl_net
+
+  airflow-init:
+    <<: *airflow-common
+    command: version
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+    depends_on:
+      postgres-airflow:
+        condition: service_healthy
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  postgres_dw:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: dw_user
+      POSTGRES_PASSWORD: dw_password
+      POSTGRES_DB: tfl_dw
+    restart: always
+    volumes:
+      - postgres_dw_data:/postgres-dw-data
+      - ./db_init:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - tfl_net
+
+  minio:
+    image: minio/minio:RELEASE.2024-06-13T22-53-53Z
+    container_name: minio_storage
+    hostname: minio
+    restart: always
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - tfl_net
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO...';
+      /usr/bin/mc alias set myminio http://minio:9000 minio minio123;
+      /usr/bin/mc mb myminio/$$tfl --ignore-existing;
+      echo 'Bucket created successfully.';
+      exit 0;
+      "
+    environment:
+      tfl: *tfl-data
+    networks:
+      - tfl_net
+
+networks:
+  tfl_net:
+    driver: bridge
+
+volumes:
+  minio_data:
+  postgres_dw_data:
