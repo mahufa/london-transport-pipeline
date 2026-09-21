@@ -3,7 +3,7 @@
 End-to-end data engineering pipeline extracting Transport for London (TfL) data to populate an analytics-ready dimensional Data Warehouse.
 
 ## Stack
-**Python · Airflow (Astronomer Runtime, Docker) · AWS S3 / MinIO · PostgreSQL · Pandas**
+**Python · Airflow · AWS S3 / MinIO · PostgreSQL · Pandas**
 
 ## Data Sources (TfL API)
 * `BikePoints`: Docking station availability.
@@ -53,20 +53,21 @@ It uses MinIO to simulate AWS S3 locally. The `docker-compose` setup automatical
 
 
 ## Prerequisites
-* **Docker Desktop** (Required for the local environment) — [Download](https://www.docker.com/products/docker-desktop/)
-* **Astronomer CLI** (Required to run Airflow) — [Install Guide](https://www.astronomer.io/docs/astro/cli/install-cli)
+* **Docker Desktop** (includes Docker Compose; required to run the whole stack) — [Download](https://www.docker.com/products/docker-desktop/)
 
 ## Quickstart
-Spin up the Airflow orchestration, PostgreSQL data warehouse, and MinIO storage:
+Spin up the Airflow image (built from `Dockerfile` on first run), orchestration, PostgreSQL data warehouse, and MinIO storage in one command:
 
 ```bash
-astro dev start
+docker compose up --build
 ```
+
+`--build` guarantees the custom Airflow image is (re)built from the current `Dockerfile`/`requirements.txt` before starting, so the stack always reflects the code in this repo.
 
 Access Airflow at localhost:8080 (admin/admin).
 
 ## Configuration:
-Airflow connections and variables are managed declaratively via `airflow_settings.yaml`. To run this pipeline against AWS S3, simply update the credentials in this file.
+Airflow connections and variables are managed declaratively as `AIRFLOW_CONN_*` / `AIRFLOW_VAR_*` environment variables under `x-airflow-common` in `docker-compose.yaml`. To run this pipeline against real AWS S3, replace the `s3_conn` connection's values there with your AWS credentials.
 
 ## License
 MIT
