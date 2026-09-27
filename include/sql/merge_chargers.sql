@@ -1,6 +1,6 @@
 BEGIN;
 
-INSERT INTO dim_connector(
+INSERT INTO gold.dim_connector(
     tfl_id,
     power_kw,
     connector_type
@@ -17,7 +17,7 @@ ON CONFLICT (tfl_id) DO UPDATE SET
 ;
 
 
-INSERT INTO dim_charging_station(
+INSERT INTO gold.dim_charging_station(
     tfl_station_id,
     name,
     lat,
@@ -44,13 +44,13 @@ WITH chargers_with_ids AS (
         sc.updated_at,
         sc.status
     FROM staging_chargers sc
-    JOIN dim_charging_station dcs
+    JOIN gold.dim_charging_station dcs
     ON dcs.tfl_station_id = sc.parent_station
-    JOIN public.dim_connector dc
+    JOIN gold.dim_connector dc
     ON dc.tfl_id = sc.connector_id
     WHERE sc.batch_id = %(batch_id)s
 )
-INSERT INTO fct_connector_availability_change(
+INSERT INTO gold.fct_connector_availability_change(
       charging_station_id,
       connector_id,
       updated_at,
