@@ -1,0 +1,124 @@
+[
+  {
+    "$type": "Tfl.Api.Presentation.Entities.Place, Tfl.Api.Presentation.Entities",
+    "id": "EsbChargePoint_ChargePointESB-UT05X7-3",
+    "url": "/Place/EsbChargePoint_ChargePointESB-UT05X7-3",
+    "commonName": "21 Bridge Road Station UT05X7 Connector 3",
+    "placeType": "ChargeConnector",
+    "additionalProperties": [
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "Status",
+        "sourceSystemKey": "EsbChargePoint",
+        "value": "Unknown",
+        "modified": "2025-09-15T10:04:36.16Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "ParentStation",
+        "sourceSystemKey": "EsbChargePoint",
+        "value": "ChargePointESB-UT05X7",
+        "modified": "2025-09-15T10:04:36.16Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "ConnectorType",
+        "sourceSystemKey": "EsbChargePoint",
+        "value": "Type 2",
+        "modified": "2025-09-15T10:04:36.16Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "ConnectorDescription",
+        "sourceSystemKey": "EsbChargePoint",
+        "value": "Type 2 Connector",
+        "modified": "2025-09-15T10:04:36.16Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "ElectricalCharacteristics",
+        "key": "Power",
+        "sourceSystemKey": "EsbChargePoint",
+        "value": "43kW",
+        "modified": "2025-09-15T10:04:36.16Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "LastUpdated",
+        "sourceSystemKey": "EsbChargePoint",
+        "value": "Sep 15 2025 10:04AM",
+        "modified": "2025-09-15T10:04:36.16Z"
+      }
+    ],
+    "children": [],
+    "childrenUrls": [],
+    "lat": 51.564362,
+    "lon": -0.278134
+  },
+  {
+    "$type": "Tfl.Api.Presentation.Entities.Place, Tfl.Api.Presentation.Entities",
+    "id": "ChargeMasterChargePoint_ChargePointCM-24122-61977",
+    "url": "/Place/ChargeMasterChargePoint_ChargePointCM-24122-61977",
+    "commonName": "16 Talgarth Road Station 24122 Connector 1",
+    "placeType": "ChargeConnector",
+    "additionalProperties": [
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "ParentStation",
+        "sourceSystemKey": "ChargeMasterChargePoint",
+        "value": "ChargePointCM-24122",
+        "modified": "2025-09-15T10:04:36.52Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "Status",
+        "sourceSystemKey": "ChargeMasterChargePoint",
+        "value": "Unavailable",
+        "modified": "2025-09-15T11:09:21.557Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "ConnectorType",
+        "sourceSystemKey": "ChargeMasterChargePoint",
+        "value": "CCS",
+        "modified": "2025-09-15T10:04:36.52Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "ConnectorDescription",
+        "sourceSystemKey": "ChargeMasterChargePoint",
+        "value": "Combined Charging System",
+        "modified": "2025-09-15T10:04:36.52Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "ElectricalCharacteristics",
+        "key": "Power",
+        "sourceSystemKey": "ChargeMasterChargePoint",
+        "value": "50kW",
+        "modified": "2025-09-15T10:04:36.52Z"
+      },
+      {
+        "$type": "Tfl.Api.Presentation.Entities.AdditionalProperties, Tfl.Api.Presentation.Entities",
+        "category": "Description",
+        "key": "LastUpdated",
+        "sourceSystemKey": "ChargeMasterChargePoint",
+        "value": "Sep 15 2025 10:04AM",
+        "modified": "2025-09-15T10:04:36.52Z"
+      }
+    ],
+    "children": [],
+    "childrenUrls": [],
+    "lat": 51.490597,
+    "lon": -0.207703
+  }
+]
