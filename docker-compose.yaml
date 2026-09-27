@@ -73,7 +73,7 @@ services:
         condition: service_completed_successfully
 
   postgres_dw:
-    image: postgres:14
+    image: postgres:17
     environment:
       POSTGRES_USER: dw_user
       POSTGRES_PASSWORD: dw_password
