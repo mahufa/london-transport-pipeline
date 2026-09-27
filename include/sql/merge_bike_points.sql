@@ -1,6 +1,6 @@
 BEGIN;
 
-INSERT INTO dim_bike_point(
+INSERT INTO gold.dim_bike_point(
     tfl_id,
     common_name,
     lat,
@@ -29,11 +29,11 @@ WITH bikes_with_ids AS (
         sbp.nb_empty_docks,
         sbp.nb_docks
     FROM staging_bike_points sbp
-    JOIN dim_bike_point dbp
+    JOIN gold.dim_bike_point dbp
     ON dbp.tfl_id = sbp.bike_point_id
     WHERE sbp.batch_id = %(batch_id)s
 )
-INSERT INTO fct_bikes_availability_change(
+INSERT INTO gold.fct_bikes_availability_change(
     bike_point_id,
     updated_at,
     nb_standard_bikes,
