@@ -11,7 +11,7 @@ SELECT DISTINCT
     category,
     subcategory,
     severity
-FROM staging_roads
+FROM silver.stg_roads
 WHERE batch_id = %(batch_id)s
 ON CONFLICT (tfl_id) DO UPDATE SET
     category = excluded.category,
@@ -35,7 +35,7 @@ SELECT DISTINCT
     end_lat,
     end_lon,
     street_name
-FROM staging_roads
+FROM silver.stg_roads
 WHERE batch_id = %(batch_id)s
 ON CONFLICT (tfl_id) DO UPDATE SET
     start_lat = excluded.start_lat,
@@ -53,7 +53,7 @@ INSERT INTO gold.dim_closure_type(
 SELECT DISTINCT
     closure,
     directions
-FROM staging_roads
+FROM silver.stg_roads
 WHERE batch_id = %(batch_id)s
 ON CONFLICT (
     closure,
@@ -68,7 +68,7 @@ WITH roads_with_ids AS (
         ds.id dim_segment_id,
         sr.start_date_time,
         sr.end_date_time
-    FROM staging_roads sr
+    FROM silver.stg_roads sr
     JOIN gold.dim_closure_type dct
     ON dct.closure = sr.closure
         AND dct.directions = sr.directions
@@ -100,8 +100,5 @@ ON CONFLICT(
     start_date_time = excluded.start_date_time,
     end_date_time = excluded.end_date_time
 ;
-
-
-DELETE FROM public.staging_roads WHERE batch_id = %(batch_id)s;
 
 COMMIT;
