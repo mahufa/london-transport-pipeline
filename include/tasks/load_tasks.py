@@ -31,7 +31,7 @@ def _make_merge_to_star_schema_operator(staging_dataset: Dataset) -> OperatorPar
     return SQLExecuteQueryOperator.partial(
         task_id=f'merge__{dataset_short_name}',
         conn_id=POSTGRES_CONN_ID,
-        sql = f'sql/merge_{dataset_short_name}.sql',
+        sql = f'sql/gold/merge_{dataset_short_name}.sql',
     )
 
 
