@@ -11,7 +11,7 @@ SELECT DISTINCT
     common_name,
     lat,
     lon
-FROM staging_bike_points
+FROM silver.stg_bike_points
 WHERE batch_id = %(batch_id)s
 ON CONFLICT (tfl_id) DO UPDATE SET
     common_name = excluded.common_name,
@@ -28,7 +28,7 @@ WITH bikes_with_ids AS (
         sbp.nb_e_bikes,
         sbp.nb_empty_docks,
         sbp.nb_docks
-    FROM staging_bike_points sbp
+    FROM silver.stg_bike_points sbp
     JOIN gold.dim_bike_point dbp
     ON dbp.tfl_id = sbp.bike_point_id
     WHERE sbp.batch_id = %(batch_id)s
@@ -52,8 +52,5 @@ ON CONFLICT (
     bike_point_id,
     updated_at
 ) DO NOTHING;
-
-
-DELETE FROM staging_bike_points WHERE batch_id = %(batch_id)s;
 
 COMMIT;
