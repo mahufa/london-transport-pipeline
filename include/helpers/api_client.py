@@ -1,21 +1,21 @@
-from json import dumps
 from logging import getLogger
 
 from airflow.exceptions import AirflowException
 from airflow.providers.http.hooks.http import HttpHook
-from requests import RequestException
+from requests import RequestException, Response
 
 
-def get_api_data(
+def get_api_data_stream(
     endpoint: str,
     params: dict = None,
-) -> str:
+) -> Response:
     api = _get_api_hook()
     response = api.run(
         endpoint=endpoint,
         data=params, #HttpHook expects GET params passed via `data=...`
+        extra_options={'stream': True},
     )
-    return dumps(response.json())
+    return response
 
 
 def is_api_available(test_endpoint) -> bool:
