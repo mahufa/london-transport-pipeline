@@ -29,3 +29,9 @@ TRANSFORM_DATASETS = [ds.bronze for ds in DATASETS.values()]
 
 
 PATH_KEY = 'file_path'
+
+RECORD_KEY_FIELDS = {
+    'bike_points': ('id',),
+    'chargers': ('id',),
+    'roads': ('disruptionId', ('distruptedStreetId', 'disruptedStreetId')),
+}

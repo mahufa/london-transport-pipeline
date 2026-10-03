@@ -17,6 +17,7 @@ def get_api_data_stream(
     response = api.run(
         endpoint=endpoint,
         data=params, #HttpHook expects GET params passed via `data=...`
+        headers={'Accept-Encoding': 'gzip'},
         extra_options={'stream': True},
     )
     return response

@@ -4,13 +4,10 @@ from include.datasets import PATH_KEY
 
 
 def get_batch_id_from_path(path: str):
-    return path[-17:-4]
-
-
-def get_path_to_staging(path_to_raw: str):
-    return (path_to_raw
-                .replace('raw', 'staging')
-                .replace('.json', '.csv'))
+    return (path
+            .replace('.json', '')
+            .replace('.gz', '')
+            )[-13:]
 
 
 def get_dataset_short_name(dataset_uri: str) -> str:
