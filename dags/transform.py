@@ -1,8 +1,7 @@
 from airflow.decorators import dag
-from pendulum import duration
 
 from include.callbacks import notify_teams
-from include.dag_config import START_DATE
+from include.dag_config import START_DATE, DEFAULT_DAGRUN_TIMEOUT, DEFAULT_RETRIES
 from include.datasets import DATASETS
 from include.tasks.common_tasks import make_get_paths_to_triggering_data_task, make_extract_dataset_paths_task
 from include.tasks.transform_tasks import build_raw_dataset_flow
@@ -20,10 +19,10 @@ from include.tasks.transform_tasks import build_raw_dataset_flow
     description=f'This DAG transforms tfl data',
     tags=['tfl', 'transform'],
     default_args={
-        'retries': 2,
+        'retries': DEFAULT_RETRIES,
         'on_failure_callback': notify_teams,
     },
-    dagrun_timeout=duration(minutes=10),
+    dagrun_timeout=DEFAULT_DAGRUN_TIMEOUT,
     max_consecutive_failed_dag_runs=2,
 )
 def transform():

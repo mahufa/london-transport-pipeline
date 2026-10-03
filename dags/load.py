@@ -1,9 +1,9 @@
 from airflow.decorators import dag
-from pendulum import duration
 
 from include.callbacks import notify_teams
-from include.dag_config import START_DATE
+from include.dag_config import START_DATE, DEFAULT_RETRIES, DEFAULT_DAGRUN_TIMEOUT
 from include.datasets import DATASETS
+from include.paths import INCLUDE_DIR
 from include.tasks.common_tasks import make_get_paths_to_triggering_data_task, make_extract_dataset_paths_task
 from include.tasks.load_tasks import build_staging_dataset_flow
 
@@ -20,12 +20,12 @@ from include.tasks.load_tasks import build_staging_dataset_flow
     description=f'This DAG loads and models tfl data',
     tags=['tfl', 'load'],
     default_args={
-        'retries': 2,
+        'retries': DEFAULT_RETRIES,
         'on_failure_callback': notify_teams,
     },
-    dagrun_timeout=duration(minutes=10),
+    dagrun_timeout=DEFAULT_DAGRUN_TIMEOUT,
     max_consecutive_failed_dag_runs=2,
-    template_searchpath=[f'/opt/airflow/include']
+    template_searchpath=[str(INCLUDE_DIR)]
 )
 def load():
     all_staging_paths = make_get_paths_to_triggering_data_task()()
