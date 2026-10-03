@@ -15,7 +15,7 @@ def build_raw_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
     )
     def _process_raw_dataset(paths: list[str]):
         prepare_data = _make_prepare_data_task(layer_datasets.raw)
-        emit_data = make_emit_dataset_task(layer_datasets.staging)
+        emit_data = make_emit_dataset_task(layer_datasets.bronze)
 
         prepared = prepare_data.expand(path_to_raw=paths)
         emit_data.expand(path=prepared)

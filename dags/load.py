@@ -12,9 +12,9 @@ from include.tasks.load_tasks import build_staging_dataset_flow
     dag_id='loader',
     start_date=START_DATE,
     schedule=(
-            DATASETS.get('bike_points').staging
-            | DATASETS.get('chargers').staging
-            | DATASETS.get('roads').staging
+            DATASETS.get('bike_points').bronze
+            | DATASETS.get('chargers').bronze
+            | DATASETS.get('roads').bronze
     ),
     catchup=False,
     description=f'This DAG loads and models tfl data',
@@ -31,7 +31,7 @@ def load():
     all_staging_paths = make_get_paths_to_triggering_data_task()()
 
     for layer_datasets in DATASETS.values():
-        extract_dataset_paths = make_extract_dataset_paths_task(layer_datasets.staging)
+        extract_dataset_paths = make_extract_dataset_paths_task(layer_datasets.bronze)
         load_dataset = build_staging_dataset_flow(layer_datasets)
 
         load_dataset(

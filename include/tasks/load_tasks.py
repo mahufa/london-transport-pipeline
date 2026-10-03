@@ -11,11 +11,11 @@ from include.helpers.dataset_utils import get_dataset_short_name, get_batch_id_f
 
 def build_staging_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
     @task_group(
-        group_id=f'load__{get_dataset_short_name(layer_datasets.staging.uri)}'
+        group_id=f'load__{get_dataset_short_name(layer_datasets.bronze.uri)}'
     )
     def _process_staging_dataset(paths: list[str]):
-        copy_task = _make_copy_csv_from_s3_to_staging_table_task(layer_datasets.staging)
-        merge_op = _make_merge_to_star_schema_operator(layer_datasets.staging)
+        copy_task = _make_copy_csv_from_s3_to_staging_table_task(layer_datasets.bronze)
+        merge_op = _make_merge_to_star_schema_operator(layer_datasets.bronze)
 
         copy_results = copy_task.expand(path_to_staging=paths)
         merge_op.expand(parameters=copy_results)
