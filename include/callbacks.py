@@ -1,5 +1,7 @@
 from airflow.providers.http.hooks.http import HttpHook
 
+from include.connections import TEAMS_CONN_ID
+
 
 #TODO: change notifications to connect to any service, not just Teams;
 #   move payload shape to airflow variables
@@ -59,5 +61,5 @@ def _prepare_message(context) -> str:
 def _get_teams_hook() -> HttpHook:
     return HttpHook(
         method='POST',
-        http_conn_id='teams',
+        http_conn_id=TEAMS_CONN_ID,
     )
