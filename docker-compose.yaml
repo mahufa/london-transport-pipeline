@@ -3,7 +3,9 @@ x-bucket-names:
 
 x-airflow-common:
   &airflow-common
-  build: .
+  build:
+    context: .
+    target: base
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor

@@ -1,0 +1,31 @@
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  dag-integrity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Airflow image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: test
+          load: true
+          tags: tfl-airflow:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test DAG integrity
+        run: >
+          docker run --rm
+          -v "${{ github.workspace }}:/opt/airflow/project"
+          -w /opt/airflow/project
+          -e PYTHONPATH=/opt/airflow/project
+          -e AIRFLOW__CORE__LOAD_EXAMPLES=false
+          -e CONNECTION_CHECK_MAX_COUNT=0
+          tfl-airflow:ci
+          python -m pytest -p no:cacheprovider tests/test_dag_integrity.py -v
