@@ -3,7 +3,7 @@
 End-to-end data engineering pipeline extracting Transport for London (TfL) data to populate an analytics-ready dimensional Data Warehouse.
 
 ## Stack
-**Python · Airflow · AWS S3 / MinIO · PostgreSQL · Pandas · Metabase**
+**Python · Airflow · AWS S3 / MinIO · PostgreSQL · Metabase**
 
 ## Data Sources (TfL API)
 * `BikePoints`: Docking station availability.
@@ -11,9 +11,10 @@ End-to-end data engineering pipeline extracting Transport for London (TfL) data 
 * `Roads`: Active road disruptions.
 
 ## Architecture
-Extract (TfL API) → land raw JSON in S3 → initially clean with Pandas → stage in S3 → load star schema to Postgres
+ELT with a **medallion architecture** in PostgreSQL:
+Extract (TfL API) → land raw JSON in S3 → load into **bronze** (Postgres `jsonb`) → validate and flatten into **silver** → model **gold** star schema
 
-Each stage is its own Airflow DAG, chained via **Dataset-driven scheduling**: a DAG doesn't run on a cron guess, it runs when the dataset it depends on is actually updated. The three extract DAGs (`tfl_bikes`, `tfl_chargers`, `tfl_roads`) run independently on their own schedules; the shared `transformer` and `loader` DAGs each fire once *any* of their upstream datasets is emitted, and fan out per-source internally via dynamic task mapping.
+Each stage is its own Airflow DAG, chained via **Dataset-driven scheduling**. The three extract DAGs (`tfl_bikes`, `tfl_chargers`, `tfl_roads`) run independently on their own schedules; the shared `loader` and `transformer` DAGs each fire once *any* of their upstream datasets is emitted, and fan out per-source internally via dynamic task mapping. Dataset events carry the S3 path (`raw`) or the `batch_id` (`bronze`) in their metadata, so each DAG knows exactly which batch to process.
 
 ```mermaid
 flowchart LR
@@ -23,30 +24,37 @@ flowchart LR
         CHECK["check_api sensor"] --> INGEST["ingest_data"]
     end
 
-    subgraph TR["transformer DAG (dataset-triggered)"]
-        CLEAN["prepare_data\n(pandas cleaners)"]
-    end
-
     subgraph LD["loader DAG (dataset-triggered)"]
-        COPY["copy_csv\nS3 → staging table"]
-        MERGE["merge SQL\nstaging → star schema"]
-        COPY --> MERGE
+        LOAD["validate_and_load\nstream JSON → COPY"]
     end
 
-    DW[("PostgreSQL\nstar schema\ndim_* / fct_*")]
+    subgraph TR["transformer DAG (dataset-triggered)"]
+        SILVER["silver\nchecks + flattening"]
+        GOLD["gold merge\nsilver → star schema"]
+        SILVER --> GOLD
+    end
+
+    BRONZE[("bronze.raw_tfl\njsonb")]
+    DLQ[("bronze.rejected_records")]
+    DW[("gold\nstar schema\ndim_* / fct_*")]
 
     API --> CHECK
-    INGEST -->|"raw JSON"| RAWS3[("S3\n*/raw/")]
-    RAWS3 -.->|"Dataset trigger"| CLEAN
-    CLEAN -->|"clean CSV"| STGS3[("S3\n*/staging/")]
-    STGS3 -.->|"Dataset trigger"| COPY
-    MERGE --> DW
+    INGEST -->|"raw JSON (gzip)"| RAWS3[("S3\n*/raw/")]
+    RAWS3 -.->|"Dataset trigger (path)"| LOAD
+    LOAD --> BRONZE
+    LOAD -->|"invalid records"| DLQ
+    BRONZE -.->|"Dataset trigger (batch_id)"| SILVER
+    SILVER -->|"rejected rows"| DLQ
+    GOLD --> DW
 ```
 
-* **Extract** — one factory-built DAG per source, each polling the TfL API before pulling data and landing it as raw JSON in S3, tagged with a `batch_id`.
-* **Transform** — triggered by the raw datasets; cleans/reshapes each source with Pandas and writes tidy CSVs to a staging S3 prefix.
-* **Load** — triggered by the staging datasets; `COPY`s the CSV into a Postgres staging table, then runs an idempotent SQL merge (`ON CONFLICT` upserts for dimensions, composite-key dedup for facts) into the dimensional warehouse, keyed by `batch_id` so reruns and backfills are safe.
+* **Extract** — one factory-built DAG per source, each polling the TfL API before streaming the response (gzip-compressed when the API supports it) straight into S3 as raw JSON, tagged with a `batch_id`.
+* **Load (bronze)** — triggered by the raw datasets. Streams each S3 object through `ijson`, validates every record and `COPY`s it into `bronze.raw_tfl` as `jsonb`, keyed by `(source, batch_id, record_key)`, where `record_key` is the record's natural key from the payload (configured per source in `include/datasets.py`). Memory use stays flat regardless of file size: records are never materialised as a whole, and deduplication runs in SQL (`row_number()` over a temp landing table), not in Python. Records that aren't JSON objects, lack a natural key, contain null bytes or duplicate a key are routed to the dead-letter table `bronze.rejected_records` (`stage = 'ingest'`) instead of failing the batch. Each batch loads in a single transaction with delete-then-insert, so reruns are idempotent.
+* **Transform (silver → gold)** — triggered by the bronze datasets with the loaded `batch_id`. Silver SQL (`include/sql/silver/`) flattens and type-checks the `jsonb` payloads, rejects invalid rows into `bronze.rejected_records` (`stage = 'silver'`) and guards the batch with a reject-ratio check; gold SQL (`include/sql/gold/`) merges the batch idempotently into the dimensional warehouse (`ON CONFLICT` upserts for dimensions, composite-key dedup for facts). *Work in progress: the silver and gold steps are being wired into the `transformer` DAG.*
 * **Visualize** — a Metabase dashboard sits on top of the warehouse for exploring the loaded data.
+
+## Known Limitations
+* **Ingest dead-letter records are buffered in memory.** Valid records are streamed to Postgres, but rejected ones are collected in a Python list and written with a single `COPY` at the end of the batch. With TfL volumes this is negligible, but a much larger (or mostly invalid) input would grow the task's memory with the number of rejects. Scaling options: flush the buffer in fixed-size chunks within the same transaction, or spill rejects to a temporary file.
 
 ## Local Environment
 This repository is configured for immediate, local execution. 
