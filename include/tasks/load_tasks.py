@@ -1,59 +1,57 @@
 from typing import Callable
 
-from airflow import Dataset
-from airflow.decorators import task_group, task
-from airflow.models.mappedoperator import OperatorPartial
-from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
+from airflow.datasets import Dataset
+from airflow.decorators import task, task_group
 
 from include.datasets import LayerDatasets
 from include.helpers.dataset_utils import get_dataset_short_name, get_batch_id_from_path
+from include.tasks.common_tasks import make_emit_dataset_task
 
 
-def build_staging_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
+def build_raw_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
+
     @task_group(
-        group_id=f'load__{get_dataset_short_name(layer_datasets.bronze.uri)}'
+        group_id=f'process__{get_dataset_short_name(layer_datasets.raw.uri)}'
     )
-    def _process_staging_dataset(paths: list[str]):
-        copy_task = _make_copy_csv_from_s3_to_staging_table_task(layer_datasets.bronze)
-        merge_op = _make_merge_to_star_schema_operator(layer_datasets.bronze)
+    def _process_raw_dataset(paths: list[str]):
+        prepare_data = _make_validate_and_load_task(layer_datasets.raw)
+        emit_data = make_emit_dataset_task(layer_datasets.bronze)
 
-        copy_results = copy_task.expand(path_to_staging=paths)
-        merge_op.expand(parameters=copy_results)
+        prepared = prepare_data.expand(path_to_raw=paths)
+        emit_data.expand(extra_val=prepared)
 
-    return _process_staging_dataset
-
-
-def _make_merge_to_star_schema_operator(staging_dataset: Dataset) -> OperatorPartial:
-    from include.helpers.postgres import POSTGRES_CONN_ID
-
-    dataset_short_name = get_dataset_short_name(staging_dataset.uri)
-
-    return SQLExecuteQueryOperator.partial(
-        task_id=f'merge__{dataset_short_name}',
-        conn_id=POSTGRES_CONN_ID,
-        sql = f'sql/gold/merge_{dataset_short_name}.sql',
-    )
+    return _process_raw_dataset
 
 
-def _make_copy_csv_from_s3_to_staging_table_task(staging_dataset: Dataset) -> Callable:
-    dataset_short_name = get_dataset_short_name(staging_dataset.uri)
+def _make_validate_and_load_task(
+    raw_dataset: Dataset
+) -> Callable:
+    source = get_dataset_short_name(raw_dataset.uri)
 
     @task(
-        task_id=f'copy__{dataset_short_name}',
-        multiple_outputs=False,
+        task_id=f'validate_and_load__{source}',
     )
-    def _copy_csv_from_s3_to_staging_table(path_to_staging: str):
+    def _validate_and_load(path_to_raw: str) -> str:
         from include.helpers.storage import get_s3_obj
-        from include.helpers.postgres import copy_s3_obj_to_postgres
+        from include.helpers.postgres import stream_to_pg_with_dlq
+        import gzip
 
-        obj = get_s3_obj(path_to_staging)
-        table_name = f'staging_{dataset_short_name}'
-        batch_id = get_batch_id_from_path(path_to_staging)
+        batch_id = get_batch_id_from_path(path_to_raw)
+        raw_obj = get_s3_obj(path_to_raw)
+        body = raw_obj['Body']
 
-        copy_s3_obj_to_postgres(obj, table_name, batch_id)
+        with (
+            gzip.GzipFile(fileobj=body)
+            if path_to_raw.endswith('.gz')
+            else body
+            as raw_stream
+        ):
+            stream_to_pg_with_dlq(
+                raw_stream,
+                batch_id,
+                source,
+            )
 
-        return {'batch_id': batch_id}
+        return batch_id
 
-    return _copy_csv_from_s3_to_staging_table
-
-
+    return _validate_and_load

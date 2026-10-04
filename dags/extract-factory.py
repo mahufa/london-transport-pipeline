@@ -38,7 +38,7 @@ def make_extract_dag(config: ExtractDagConfig):
             dataset=config.dataset,
         )
 
-        check_api() >> emit_data(path=ingest_data())
+        check_api() >> emit_data(extra_val=ingest_data())
 
     return extract()
 

@@ -28,7 +28,10 @@ EXTRACT_DATASETS = [ds.raw for ds in DATASETS.values()]
 TRANSFORM_DATASETS = [ds.bronze for ds in DATASETS.values()]
 
 
-PATH_KEY = 'file_path'
+EXTRA_VAL_KEYS = {
+    'raw': 'path',
+    'bronze': 'batch_id',
+}
 
 RECORD_KEY_FIELDS = {
     'bike_points': ('id',),
