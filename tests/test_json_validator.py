@@ -26,9 +26,8 @@ def test_key_fields_match_fixture(source):
         (1, 'Not a JSON object'),
         ({'name': 'x'}, 'Missing record key'),
         ({'id': 'a', 'v': '\x00'}, 'Contains null bytes'),
-        ({'id': 'a', 'v': '\ud800'}, 'Serialization error'),
     ],
-    ids=['not_object', 'missing_key', 'null_byte', 'lone_surrogate'],
+    ids=['not_object', 'missing_key', 'null_byte'],
 )
 def test_classify_record_rejects(record, expected_error):
     result = classify_record(record, ('id',))
@@ -41,6 +40,14 @@ def test_record_key_falls_back_to_alternative_field():
     result = classify_record({'k': 'x', 'alt2': 'y'}, ('k', ('alt1', 'alt2')))
 
     assert result.key == 'x,y'
+
+
+def test_lone_surrogate_is_replaced():
+    stream = io.BytesIO(b'[{"id":"a","v":"\\ud800"}]')
+
+    rows = list(generate_clean_lines(stream, [], ('id',)))
+
+    assert [payload for _, _, payload in rows] == ['{"id":"a","v":"?"}']
 
 
 def test_rejects_do_not_advance_ordinal():
