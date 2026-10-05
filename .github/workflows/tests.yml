@@ -1,0 +1,47 @@
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build Airflow image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: test
+          load: true
+          tags: tfl-airflow:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run tests
+        run: >
+          docker run --rm
+          --network host
+          -v "${{ github.workspace }}:/opt/airflow/project"
+          -w /opt/airflow/project
+          -e PYTHONPATH=/opt/airflow/project
+          -e AIRFLOW__CORE__LOAD_EXAMPLES=false
+          -e CONNECTION_CHECK_MAX_COUNT=0
+          -e DW_TEST_DSN=postgresql://test:test@localhost:5432/test
+          tfl-airflow:ci
+          python -m pytest -p no:cacheprovider tests -v

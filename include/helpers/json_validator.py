@@ -1,10 +1,27 @@
 import json
+from dataclasses import dataclass
 from typing import Iterator
 
 import ijson
 
+# C backend replaces lone surrogates with '?' and rejects NaN/Infinity/overflow,
+# so every parsed record is serializable; fail at import rather than fall back
+IJSON_BACKEND = ijson.get_backend('yajl2_c')
+
 # each element is a field name or a tuple of alternative field names
 RecordKeyFields = tuple[str | tuple[str, ...], ...]
+
+
+@dataclass(frozen=True)
+class Accepted:
+    key: str
+    payload: str
+
+
+@dataclass(frozen=True)
+class Rejected:
+    record: str
+    error: str
 
 
 def generate_clean_lines(
@@ -13,39 +30,40 @@ def generate_clean_lines(
         key_fields: RecordKeyFields,
 ) -> Iterator[tuple[int, str, str]]:
     ordinal = 0
-    for record in ijson.items(stream, 'item', use_float=True):
-        if not isinstance(record, dict):
-            dlq_buffer.append((json.dumps(record), 'Not a JSON object'))
+    for record in IJSON_BACKEND.items(stream, 'item', use_float=True):
+        result = classify_record(record, key_fields)
+
+        if isinstance(result, Rejected):
+            dlq_buffer.append((result.record, result.error))
             continue
 
-        try:
-            record_str = _serialize_record(record)
-            record_key = _extract_record_key(record, key_fields)
-            error_msg = _validate_and_get_error_msg(record_key, record_str)
+        yield ordinal, result.key, result.payload
+        ordinal += 1
 
-            if error_msg:
-                dlq_buffer.append((record_str, error_msg))
-                continue
 
-            yield ordinal, record_key, record_str
-            ordinal += 1
+def classify_record(
+        record,
+        key_fields: RecordKeyFields,
+) -> Accepted | Rejected:
+    if not isinstance(record, dict):
+        return Rejected(json.dumps(record), 'Not a JSON object')
 
-        except (TypeError, ValueError) as e:
-            dlq_buffer.append(
-                (str(record),
-                 f'Serialization error: {e}')
-            )
+    record_str = _serialize_record(record)
+    record_key = _extract_record_key(record, key_fields)
+    error_msg = _validate_and_get_error_msg(record_key, record_str)
+
+    if error_msg:
+        return Rejected(record_str, error_msg)
+
+    return Accepted(record_key, record_str)
 
 
 def _serialize_record(record: dict) -> str:
-    record_str = json.dumps(
+    return json.dumps(
         record,
         ensure_ascii=False,
         allow_nan=False,
         separators=(',', ':'))
-    record_str.encode('utf-8') # raises UnicodeEncodeError on lone surrogates (jsonb rejects them)
-
-    return record_str
 
 
 def _validate_and_get_error_msg(
