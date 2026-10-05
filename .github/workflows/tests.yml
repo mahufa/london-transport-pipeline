@@ -2,8 +2,22 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-  dag-integrity:
+  tests:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -19,13 +33,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Test DAG integrity
+      - name: Run tests
         run: >
           docker run --rm
+          --network host
           -v "${{ github.workspace }}:/opt/airflow/project"
           -w /opt/airflow/project
           -e PYTHONPATH=/opt/airflow/project
           -e AIRFLOW__CORE__LOAD_EXAMPLES=false
           -e CONNECTION_CHECK_MAX_COUNT=0
+          -e DW_TEST_DSN=postgresql://test:test@localhost:5432/test
           tfl-airflow:ci
-          python -m pytest -p no:cacheprovider tests/test_dag_integrity.py -v
+          python -m pytest -p no:cacheprovider tests -v
