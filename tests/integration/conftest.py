@@ -16,8 +16,8 @@ def pg_conn():
     conn = psycopg2.connect(dsn)
     with conn, conn.cursor() as cur:
         cur.execute('DROP SCHEMA IF EXISTS bronze, silver, gold CASCADE')
-        for name in ('00_schemas.sql', '01_bronze.sql'):
-            cur.execute((DB_INIT / name).read_text())
+        for path in sorted(DB_INIT.glob('*.sql')):
+            cur.execute(path.read_text())
 
     yield conn
     conn.close()
