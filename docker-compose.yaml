@@ -82,7 +82,7 @@ services:
       POSTGRES_DB: tfl_dw
     restart: always
     volumes:
-      - postgres_dw_data:/postgres-dw-data
+      - postgres_dw_data:/var/lib/postgresql/data
       - ./db_init:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"
