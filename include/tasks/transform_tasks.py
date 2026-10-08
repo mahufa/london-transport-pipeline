@@ -1,8 +1,6 @@
 from typing import Callable
 
-from airflow import XComArg
 from airflow.decorators import task_group
-from airflow.models.mappedoperator import OperatorPartial
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator, SQLCheckOperator
 
 from include.dag_config import MAX_REJECT_RATIO
@@ -16,57 +14,68 @@ def build_bronze_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
     @task_group(
         group_id=f'transform__{source}'
     )
-    def _process_bronze_dataset(batch_ids: XComArg):
-        params = batch_ids.map(
-            lambda batch_id: {'batch_id': batch_id}
-        )
-        check_params = batch_ids.map(
-            lambda batch_id: {
-                'batch_id': batch_id,
-                'source': source,
-                'max_reject_ratio': MAX_REJECT_RATIO,
-            }
+    def _process_bronze_dataset(batch_id: str):
+        params = {'batch_id': batch_id}
+        check_params = (
+                params
+                |
+                {
+                    'source': source,
+                    'max_reject_ratio': MAX_REJECT_RATIO
+                }
         )
 
-        reject_op = _make_reject_invalid_operator(source)
-        check_op = _make_check_batch_reject_ratio_operator(source)
-        merge_op = _make_merge_to_star_schema_operator(source)
-
-        reject = reject_op.expand(parameters=params)
-        check = check_op.expand(parameters=check_params)
-        merge = merge_op.expand(parameters=params)
+        reject = _make_reject_invalid_op(source, params)
+        check = _make_check_batch_reject_ratio_op(source, check_params)
+        merge = _make_merge_to_star_schema_op(source, params)
 
         reject >> check >> merge
 
     return _process_bronze_dataset
 
 
-def _make_merge_to_star_schema_operator(dataset_short_name: str) -> OperatorPartial:
+def _make_merge_to_star_schema_op(
+    dataset_short_name: str,
+    params: dict,
+) -> SQLExecuteQueryOperator:
     from include.helpers.postgres import POSTGRES_CONN_ID
 
-    return SQLExecuteQueryOperator.partial(
+    return SQLExecuteQueryOperator(
         task_id=f'merge__{dataset_short_name}',
         conn_id=POSTGRES_CONN_ID,
         sql=f'sql/gold/merge_{dataset_short_name}.sql',
         max_active_tis_per_dagrun=1,
+        parameters=params,
     )
 
 
-def _make_check_batch_reject_ratio_operator(dataset_short_name: str) -> OperatorPartial:
+def _make_check_batch_reject_ratio_op(
+    dataset_short_name: str,
+    params: dict,
+) -> SQLCheckOperator:
     from include.helpers.postgres import POSTGRES_CONN_ID
 
-    return SQLCheckOperator.partial(
+    return _SQLCheckOperator(
         task_id=f'check_reject_ratio_of__{dataset_short_name}',
         conn_id=POSTGRES_CONN_ID,
         sql=f'sql/silver/check_reject_ratio.sql',
+        parameters=params,
     )
 
 
-def _make_reject_invalid_operator(dataset_short_name: str) -> OperatorPartial:
+def _make_reject_invalid_op(
+    dataset_short_name: str,
+    params: dict,
+) -> SQLExecuteQueryOperator:
     from include.helpers.postgres import POSTGRES_CONN_ID
 
-    return SQLExecuteQueryOperator.partial(
+    return SQLExecuteQueryOperator(
         task_id=f'reject__{dataset_short_name}',
         conn_id=POSTGRES_CONN_ID,
         sql=f'sql/silver/reject_{dataset_short_name}.sql',
+        parameters=params,
     )
+
+
+class _SQLCheckOperator(SQLCheckOperator):
+    template_fields = (*SQLCheckOperator.template_fields, 'parameters')
