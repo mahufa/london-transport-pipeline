@@ -6,13 +6,18 @@ SELECT
         FROM bronze.rejected_records
         WHERE source = %(source)s
             AND batch_id = %(batch_id)s
-            AND stage = 'silver'
     ) AS rejected,
     (
         SELECT count(*)
         FROM bronze.raw_tfl
         WHERE source = %(source)s
             AND batch_id = %(batch_id)s
+    ) + (
+        SELECT count(*)
+        FROM bronze.rejected_records
+        WHERE source = %(source)s
+            AND batch_id = %(batch_id)s
+            AND stage = 'ingest'
     ) AS total
 )
 SELECT

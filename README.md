@@ -1,5 +1,7 @@
 # TfL Data Pipeline
 
+[![Tests](https://github.com/mahufa/london-transport-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/mahufa/london-transport-pipeline/actions/workflows/tests.yml)
+
 End-to-end data engineering pipeline extracting Transport for London (TfL) data to populate an analytics-ready dimensional Data Warehouse.
 
 ## Stack
@@ -50,11 +52,21 @@ flowchart LR
 
 * **Extract** — one factory-built DAG per source, each polling the TfL API before streaming the response (gzip-compressed when the API supports it) straight into S3 as raw JSON, tagged with a `batch_id`.
 * **Load (bronze)** — triggered by the raw datasets. Streams each S3 object through `ijson`, validates every record and `COPY`s it into `bronze.raw_tfl` as `jsonb`, keyed by `(source, batch_id, record_key)`, where `record_key` is the record's natural key from the payload (configured per source in `include/datasets.py`). Memory use stays flat regardless of file size: records are never materialised as a whole, and deduplication runs in SQL (`row_number()` over a temp landing table), not in Python. Records that aren't JSON objects, lack a natural key, contain null bytes or duplicate a key are routed to the dead-letter table `bronze.rejected_records` (`stage = 'ingest'`) instead of failing the batch. Each batch loads in a single transaction with delete-then-insert, so reruns are idempotent.
-* **Transform (silver → gold)** — triggered by the bronze datasets with the loaded `batch_id`. Silver SQL (`include/sql/silver/`) flattens and type-checks the `jsonb` payloads, rejects invalid rows into `bronze.rejected_records` (`stage = 'silver'`) and guards the batch with a reject-ratio check; gold SQL (`include/sql/gold/`) merges the batch idempotently into the dimensional warehouse (`ON CONFLICT` upserts for dimensions, composite-key dedup for facts). *Work in progress: the silver and gold steps are being wired into the `transformer` DAG.*
-* **Visualize** — a Metabase dashboard sits on top of the warehouse for exploring the loaded data.
+* **Transform (silver → gold)** — triggered by the bronze datasets with the loaded `batch_id`. Silver is a set of views (`db_init/02_silver.sql`) that flatten and type-check the `jsonb` payloads, so no data is copied between bronze and silver. Per source, the `transformer` DAG maps a task group over the batch ids, so every batch runs its own chain: it writes invalid rows to `bronze.rejected_records` (`stage = 'silver'`, `include/sql/silver/reject_*.sql`), fails the batch if more than `MAX_REJECT_RATIO` (10%, `include/dag_config.py`) of the records received were rejected at ingest or in silver, and merges valid rows idempotently into the gold star schema (`include/sql/gold/`; `ON CONFLICT` upserts for dimensions, composite-key dedup for facts). A batch that fails its check doesn't block the other batches of the same run, and gold merges run one batch at a time to avoid concurrent upserts of the same dimension rows.
+* **Visualize** — Metabase sits on top of the warehouse for exploring the loaded data.
 
 ## Known Limitations
-* **Ingest dead-letter records are buffered in memory.** Valid records are streamed to Postgres, but rejected ones are collected in a Python list and written with a single `COPY` at the end of the batch. With TfL volumes this is negligible, but a much larger (or mostly invalid) input would grow the task's memory with the number of rejects. Scaling options: flush the buffer in fixed-size chunks within the same transaction, or spill rejects to a temporary file.
+* **Ingest dead-letter records are buffered in memory.** Valid records are streamed to Postgres, but rejected ones are collected in a Python list and written with a single `COPY` at the end of the batch. With TfL volumes this is negligible, but a much larger (and mostly invalid) input would grow the task's memory with the number of rejects. Scaling options: flush the buffer in fixed-size chunks within the same transaction, or spill rejects to a temporary file.
+
+## Testing
+```bash
+docker build --target test -t tfl-airflow:ci .
+docker run --rm -v "$PWD:/opt/airflow/project" -w /opt/airflow/project -e PYTHONPATH=/opt/airflow/project \
+  tfl-airflow:ci python -m pytest -p no:cacheprovider tests
+```
+* **Unit tests** (`tests/`) cover DAG integrity, JSON validation, `COPY` formatting and dataset-event helpers.
+* **Integration tests** (`tests/integration/`) load data into a real PostgreSQL and check dead-letter routing, deduplication and rerun idempotency. They need a throwaway database, passed as `DW_TEST_DSN` (e.g. `-e DW_TEST_DSN=postgresql://test:test@host.docker.internal:5434/test`), and are skipped without it. The schema is recreated from `db_init/` on every test session, so never point it at the real warehouse.
+* **CI** (GitHub Actions) builds the `test` image with layer caching and runs the full suite against a PostgreSQL service container on every push.
 
 ## Local Environment
 This repository is configured for immediate, local execution. 
@@ -74,7 +86,9 @@ docker compose up --build
 `--build` guarantees the custom Airflow image is (re)built from the current `Dockerfile`/`requirements.txt` before starting, so the stack always reflects the code in this repo.
 
 * Access Airflow at localhost:8080 (`admin`/`admin`).
-* Access Metabase at localhost:3000 (`admin@example.com`/`MetabaseAdmin123`) — the `postgres_dw` connection is provisioned automatically by the `metabase-init` service, so the dashboard is ready to query as soon as the pipeline has loaded data.
+* Access Metabase at localhost:3000 (`admin@example.com`/`MetabaseAdmin123`) — the `postgres_dw` connection is provisioned automatically by the `metabase-init` service, so the warehouse is ready to query as soon as the pipeline has loaded data.
+
+The warehouse schema (`db_init/`: schemas, bronze tables, silver views, gold star schema) is applied by PostgreSQL's init scripts, which run **only on an empty volume**. After changing any file in `db_init/`, either reset with `docker compose down -v` or apply the change by hand (e.g. as `CREATE OR REPLACE VIEW ...`) via `docker compose exec postgres_dw psql -U dw_user -d tfl_dw`.
 
 ## Configuration:
 Airflow connections and variables are managed declaratively as `AIRFLOW_CONN_*` / `AIRFLOW_VAR_*` environment variables under `x-airflow-common` in `docker-compose.yaml`. To run this pipeline against real AWS S3, replace the `s3_conn` connection's values there with your AWS credentials.

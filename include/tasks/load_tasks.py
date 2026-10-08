@@ -1,5 +1,6 @@
 from typing import Callable
 
+from airflow import XComArg
 from airflow.datasets import Dataset
 from airflow.decorators import task, task_group
 
@@ -13,7 +14,7 @@ def build_raw_dataset_flow(layer_datasets: LayerDatasets) -> Callable:
     @task_group(
         group_id=f'process__{get_dataset_short_name(layer_datasets.raw.uri)}'
     )
-    def _process_raw_dataset(paths: list[str]):
+    def _process_raw_dataset(paths: XComArg):
         prepare_data = _make_validate_and_load_task(layer_datasets.raw)
         emit_data = make_emit_dataset_task(layer_datasets.bronze)
 

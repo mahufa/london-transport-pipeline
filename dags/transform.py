@@ -34,8 +34,8 @@ def transform():
         extract_dataset_batch_ids = make_extract_dataset_extras_task(layer_datasets.bronze)
         transform_dataset = build_bronze_dataset_flow(layer_datasets)
 
-        transform_dataset(
-            batch_ids=extract_dataset_batch_ids(all_bronze_batch_ids)
+        transform_dataset.expand(
+            batch_id=extract_dataset_batch_ids(all_bronze_batch_ids)
         )
 
 
