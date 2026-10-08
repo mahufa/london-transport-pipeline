@@ -65,7 +65,7 @@ docker run --rm -v "$PWD:/opt/airflow/project" -w /opt/airflow/project -e PYTHON
   tfl-airflow:ci python -m pytest -p no:cacheprovider tests
 ```
 * **Unit tests** (`tests/`) cover DAG integrity, JSON validation, `COPY` formatting and dataset-event helpers.
-* **Integration tests** (`tests/integration/`) load data into a real PostgreSQL and check dead-letter routing, deduplication and rerun idempotency. They need a throwaway database, passed as `DW_TEST_DSN` (e.g. `-e DW_TEST_DSN=postgresql://test:test@host.docker.internal:5434/test`), and are skipped without it. The schema is recreated from `db_init/` on every test session, so never point it at the real warehouse.
+* **Integration tests** (`tests/integration/`) load data into a real PostgreSQL and check dead-letter routing, deduplication, rerun idempotency and the silver reject-ratio check. They need a throwaway database, passed as `DW_TEST_DSN` (e.g. `-e DW_TEST_DSN=postgresql://test:test@host.docker.internal:5434/test`), and are skipped without it. The schema is recreated from `db_init/` on every test session, so never point it at the real warehouse.
 * **CI** (GitHub Actions) builds the `test` image with layer caching and runs the full suite against a PostgreSQL service container on every push.
 
 ## Local Environment
