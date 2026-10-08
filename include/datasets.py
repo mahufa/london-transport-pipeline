@@ -6,26 +6,35 @@ from airflow.datasets import Dataset
 @dataclass(frozen=True)
 class LayerDatasets:
     raw: Dataset
-    staging: Dataset
+    bronze: Dataset
 
 
 DATASETS: dict[str, LayerDatasets] = {
     "bike_points": LayerDatasets(
         raw=Dataset("bike_points/raw/"),
-        staging=Dataset("bike_points/staging/"),
+        bronze=Dataset("bike_points/bronze/"),
     ),
     "chargers": LayerDatasets(
         raw=Dataset("chargers/raw/"),
-        staging=Dataset("chargers/staging/"),
+        bronze=Dataset("chargers/bronze/"),
     ),
     "roads": LayerDatasets(
         raw=Dataset("roads/raw/"),
-        staging=Dataset("roads/staging/"),
+        bronze=Dataset("roads/bronze/"),
     ),
 }
 
 EXTRACT_DATASETS = [ds.raw for ds in DATASETS.values()]
-TRANSFORM_DATASETS = [ds.staging for ds in DATASETS.values()]
+TRANSFORM_DATASETS = [ds.bronze for ds in DATASETS.values()]
 
 
-PATH_KEY = 'file_path'
+EXTRA_VAL_KEYS = {
+    'raw': 'path',
+    'bronze': 'batch_id',
+}
+
+RECORD_KEY_FIELDS = {
+    'bike_points': ('id',),
+    'chargers': ('id',),
+    'roads': ('disruptionId', ('distruptedStreetId', 'disruptedStreetId')),
+}

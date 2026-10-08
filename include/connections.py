@@ -1,0 +1,5 @@
+POSTGRES_CONN_ID = 'postgres_dw'
+S3_CONN_ID = 's3_conn'
+TFL_API_CONN_ID = 'tfl_api'
+TEAMS_CONN_ID = 'teams'
+BUCKET_NAME_VAR = 'BUCKET_NAME'

@@ -17,12 +17,16 @@ def make_ingest_data_task(
 
     @task(templates_dict=templates)
     def _ingest_data_task(templates_dict) -> str:
-        from include.helpers.api_client import get_api_data
-        from include.helpers.storage import store_str_in_s3
+        from include.helpers.api_client import get_api_data_stream
+        from include.helpers.storage import store_stream_in_s3
 
         path = templates_dict.pop('path')
-        data = get_api_data(endpoint, templates_dict)
-        store_str_in_s3(data, path)
+        with get_api_data_stream(endpoint, templates_dict) as api_response:
+            if 'gzip' in api_response.headers.get('Content-Encoding', '').lower():
+                path += '.gz'
+
+            store_stream_in_s3(api_response.raw, path)
+
         return path
 
     return _ingest_data_task

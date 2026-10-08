@@ -63,7 +63,9 @@ DB_PAYLOAD=$(jq -n \
       user: "dw_user",
       password: "dw_password",
       ssl: false,
-      "tunnel-enabled": false
+      "tunnel-enabled": false,
+      "schema-filters-type": "inclusion",
+      "schema-filters-patterns": "gold"
     },
     is_full_sync: true
   }')

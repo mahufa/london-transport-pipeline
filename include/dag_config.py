@@ -5,6 +5,9 @@ from pendulum import datetime, Duration, DateTime, UTC, duration
 
 
 START_DATE = datetime(2025, 6, 1).astimezone(UTC)
+DEFAULT_RETRIES = 2
+DEFAULT_DAGRUN_TIMEOUT = duration(minutes=10)
+MAX_REJECT_RATIO = 0.1
 
 @dataclass
 class ExtractDagConfig:

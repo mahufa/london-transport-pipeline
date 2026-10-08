@@ -3,7 +3,9 @@ x-bucket-names:
 
 x-airflow-common:
   &airflow-common
-  build: .
+  build:
+    context: .
+    target: base
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -73,14 +75,14 @@ services:
         condition: service_completed_successfully
 
   postgres_dw:
-    image: postgres:14
+    image: postgres:17
     environment:
       POSTGRES_USER: dw_user
       POSTGRES_PASSWORD: dw_password
       POSTGRES_DB: tfl_dw
     restart: always
     volumes:
-      - postgres_dw_data:/postgres-dw-data
+      - postgres_dw_data:/var/lib/postgresql/data
       - ./db_init:/docker-entrypoint-initdb.d
     ports:
       - "5433:5432"

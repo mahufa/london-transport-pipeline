@@ -1,6 +1,6 @@
 BEGIN;
 
-INSERT INTO dim_connector(
+INSERT INTO gold.dim_connector(
     tfl_id,
     power_kw,
     connector_type
@@ -9,7 +9,7 @@ SELECT DISTINCT
     connector_id,
     power_kw,
     connector_type
-FROM staging_chargers
+FROM silver.stg_chargers
 WHERE batch_id = %(batch_id)s
 ON CONFLICT (tfl_id) DO UPDATE SET
     power_kw = excluded.power_kw,
@@ -17,7 +17,7 @@ ON CONFLICT (tfl_id) DO UPDATE SET
 ;
 
 
-INSERT INTO dim_charging_station(
+INSERT INTO gold.dim_charging_station(
     tfl_station_id,
     name,
     lat,
@@ -28,7 +28,7 @@ SELECT DISTINCT
     station_name,
     lat,
     lon
-FROM staging_chargers
+FROM silver.stg_chargers
 WHERE batch_id = %(batch_id)s
 ON CONFLICT (tfl_station_id) DO UPDATE SET
     name = excluded.name,
@@ -43,14 +43,14 @@ WITH chargers_with_ids AS (
         dc.id dim_connector_id,
         sc.updated_at,
         sc.status
-    FROM staging_chargers sc
-    JOIN dim_charging_station dcs
+    FROM silver.stg_chargers sc
+    JOIN gold.dim_charging_station dcs
     ON dcs.tfl_station_id = sc.parent_station
-    JOIN public.dim_connector dc
+    JOIN gold.dim_connector dc
     ON dc.tfl_id = sc.connector_id
     WHERE sc.batch_id = %(batch_id)s
 )
-INSERT INTO fct_connector_availability_change(
+INSERT INTO gold.fct_connector_availability_change(
       charging_station_id,
       connector_id,
       updated_at,
@@ -67,8 +67,5 @@ ON CONFLICT (
     connector_id,
     updated_at
     ) DO NOTHING;
-
-
-DELETE FROM public.staging_chargers WHERE batch_id = %(batch_id)s;
 
 COMMIT;
