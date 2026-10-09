@@ -25,7 +25,11 @@ def make_extract_dag(config: ExtractDagConfig):
     )
     def extract():
 
-        check_api = config.custom_api_sensor() if config.custom_api_sensor else make_check_api_sensor()
+        check_api = make_check_api_sensor(
+            poke_interval=config.sensor_poke_interval,
+            timeout=config.sensor_timeout,
+            mode=config.sensor_mode,
+        )
 
         ingest_data = make_ingest_data_task(
             endpoint=config.endpoint,
@@ -43,14 +47,14 @@ configs = [
         dag_id='tfl_bikes',
         tag='bikes',
         endpoint='/Place/Type/BikePoint',
-        dataset=DATASETS.get('bike_points').raw,
+        dataset=DATASETS['bike_points'].raw,
     ),
 
     ExtractDagConfig(
         dag_id='tfl_chargers',
         tag='chargers',
         endpoint='/Place/Type/ChargeConnector',
-        dataset=DATASETS.get('chargers').raw,
+        dataset=DATASETS['chargers'].raw,
     ),
 
     ExtractDagConfig(
@@ -61,14 +65,12 @@ configs = [
             'startDate': '{{ data_interval_start.isoformat() }}',
             'endDate': '{{ data_interval_end.isoformat() }}',
         },
-        dataset=DATASETS.get('roads').raw,
+        dataset=DATASETS['roads'].raw,
         schedule='@daily',
         dagrun_timeout=duration(hours=1),
-        custom_api_sensor=lambda: make_check_api_sensor(
-            poke_interval=30,
-            timeout=300,
-            mode="reschedule",
-        )
+        sensor_poke_interval=30,
+        sensor_timeout=300,
+        sensor_mode='reschedule',
     ),
 ]
 

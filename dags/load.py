@@ -11,12 +11,12 @@ from include.tasks.load_tasks import build_raw_dataset_flow
     dag_id='loader',
     start_date=START_DATE,
     schedule=(
-            DATASETS.get('bike_points').raw
-            | DATASETS.get('chargers').raw
-            | DATASETS.get('roads').raw
+            DATASETS['bike_points'].raw
+            | DATASETS['chargers'].raw
+            | DATASETS['roads'].raw
     ),
     catchup=False,
-    description=f'This DAG loads tfl data',
+    description='This DAG loads tfl data',
     tags=['tfl', 'load'],
     default_args={
         'retries': DEFAULT_RETRIES,

@@ -3,6 +3,7 @@ from typing import Callable
 from airflow.decorators import task_group
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator, SQLCheckOperator
 
+from include.connections import POSTGRES_CONN_ID
 from include.dag_config import MAX_REJECT_RATIO
 from include.datasets import LayerDatasets
 from include.helpers.dataset_utils import get_dataset_short_name
@@ -38,8 +39,6 @@ def _make_merge_to_star_schema_op(
     dataset_short_name: str,
     params: dict,
 ) -> SQLExecuteQueryOperator:
-    from include.helpers.postgres import POSTGRES_CONN_ID
-
     return SQLExecuteQueryOperator(
         task_id=f'merge__{dataset_short_name}',
         conn_id=POSTGRES_CONN_ID,
@@ -53,12 +52,10 @@ def _make_check_batch_reject_ratio_op(
     dataset_short_name: str,
     params: dict,
 ) -> SQLCheckOperator:
-    from include.helpers.postgres import POSTGRES_CONN_ID
-
     return _SQLCheckOperator(
         task_id=f'check_reject_ratio_of__{dataset_short_name}',
         conn_id=POSTGRES_CONN_ID,
-        sql=f'sql/silver/check_reject_ratio.sql',
+        sql='sql/silver/check_reject_ratio.sql',
         parameters=params,
     )
 
@@ -67,8 +64,6 @@ def _make_reject_invalid_op(
     dataset_short_name: str,
     params: dict,
 ) -> SQLExecuteQueryOperator:
-    from include.helpers.postgres import POSTGRES_CONN_ID
-
     return SQLExecuteQueryOperator(
         task_id=f'reject__{dataset_short_name}',
         conn_id=POSTGRES_CONN_ID,
@@ -77,5 +72,6 @@ def _make_reject_invalid_op(
     )
 
 
+# SQLCheckOperator doesn't template `parameters`, so the mapped batch_id wouldn't be rendered
 class _SQLCheckOperator(SQLCheckOperator):
     template_fields = (*SQLCheckOperator.template_fields, 'parameters')
