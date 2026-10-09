@@ -23,7 +23,6 @@ from include.tasks.load_tasks import build_raw_dataset_flow
         'on_failure_callback': notify_teams,
     },
     dagrun_timeout=DEFAULT_DAGRUN_TIMEOUT,
-    max_consecutive_failed_dag_runs=2,
 )
 def load():
     all_raw_paths = make_get_extras_from_triggering_data_task()()
