@@ -24,7 +24,6 @@ from include.tasks.transform_tasks import build_bronze_dataset_flow
         'on_failure_callback': notify_teams,
     },
     dagrun_timeout=DEFAULT_DAGRUN_TIMEOUT,
-    max_consecutive_failed_dag_runs=2,
     template_searchpath=[str(INCLUDE_DIR)]
 )
 def transform():

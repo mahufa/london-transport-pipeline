@@ -18,6 +18,7 @@ x-airflow-common:
     AIRFLOW_CONN_POSTGRES_DW: '{"conn_type": "postgres", "host": "postgres_dw", "login": "dw_user", "password": "dw_password", "schema": "tfl_dw",  "port": 5432}'
     AIRFLOW_CONN_S3_CONN: '{"conn_type": "aws", "login": "minio", "password": "minio123", "extra": {"endpoint_url": "http://minio:9000"}}'
     AIRFLOW_VAR_BUCKET_NAME: *tfl-data
+    # AIRFLOW_CONN_TEAMS: '{"conn_type": "http", "host": "https://<your-teams-webhook-url>"}'
     PYTHONPATH: '/opt/airflow'
   volumes:
     - ./dags:/opt/airflow/dags

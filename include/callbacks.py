@@ -3,17 +3,29 @@ from airflow.providers.http.hooks.http import HttpHook
 from include.connections import TEAMS_CONN_ID
 
 
-#TODO: change notifications to connect to any service, not just Teams;
-#   move payload shape to airflow variables
-
 def notify_teams(context):
     from logging import getLogger
+
+    logger = getLogger(__name__)
+    if not _is_teams_configured():
+        logger.warning("Teams alert skipped: connection '%s' is not configured", TEAMS_CONN_ID)
+        return
 
     try:
         _post_details_to_teams(context)
     except Exception:
-        logger = getLogger(__name__)
-        logger.exception("Failed to connect to API")
+        logger.exception("Failed to send Teams alert")
+
+
+def _is_teams_configured() -> bool:
+    from airflow.exceptions import AirflowNotFoundException
+    from airflow.hooks.base import BaseHook
+
+    try:
+        BaseHook.get_connection(TEAMS_CONN_ID)
+    except AirflowNotFoundException:
+        return False
+    return True
 
 
 def _post_details_to_teams(context):
@@ -53,9 +65,9 @@ def _prepare_payload(context) -> dict:
 def _prepare_message(context) -> str:
     task_id = context['task_instance'].task_id
     dag_id = context['dag'].dag_id
-    exec_date = context['execution_date']
+    logical_date = context['logical_date']
 
-    return f'Task *{task_id}* in DAG *{dag_id}* has failed on *{exec_date}*.'
+    return f'Task *{task_id}* in DAG *{dag_id}* has failed on *{logical_date}*.'
 
 
 def _get_teams_hook() -> HttpHook:
