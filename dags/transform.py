@@ -12,12 +12,12 @@ from include.tasks.transform_tasks import build_bronze_dataset_flow
     dag_id='transformer',
     start_date=START_DATE,
     schedule=(
-            DATASETS.get('bike_points').bronze
-            | DATASETS.get('chargers').bronze
-            | DATASETS.get('roads').bronze
+            DATASETS['bike_points'].bronze
+            | DATASETS['chargers'].bronze
+            | DATASETS['roads'].bronze
     ),
     catchup=False,
-    description=f'This DAG checks and transforms tfl data',
+    description='This DAG checks and transforms tfl data',
     tags=['tfl', 'transform'],
     default_args={
         'retries': DEFAULT_RETRIES,
