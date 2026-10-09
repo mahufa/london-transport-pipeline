@@ -1,7 +1,6 @@
 from typing import Callable
 
 from airflow.datasets import Dataset
-from airflow.datasets.metadata import Metadata
 from airflow.decorators import task
 
 from include.datasets import EXTRA_VAL_KEYS
@@ -29,17 +28,3 @@ def make_get_extras_from_triggering_data_task() -> Callable:
         return get_event_extras(triggering_dataset_events)
 
     return _get_extras_from_triggering_data
-
-
-def make_emit_dataset_task(dataset: Dataset) -> Callable:
-
-    @task(outlets=[dataset])
-    def _emit_dataset_task(extra_val: str):
-        yield Metadata(
-            target=dataset,
-            extra={
-                EXTRA_VAL_KEYS[get_layer_from_uri(dataset.uri)]: extra_val
-            },
-        )
-
-    return _emit_dataset_task
