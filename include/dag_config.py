@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Optional
 from airflow.datasets import Dataset
 from pendulum import datetime, Duration, DateTime, UTC, duration
 
@@ -14,10 +14,12 @@ class ExtractDagConfig:
     dag_id: str
     tag: str
     endpoint: str
+    dataset: Dataset
     templated_params: Optional[dict] = None
-    dataset: Optional[Dataset] = None
     schedule: str = "*/30 * * * *"
-    dagrun_timeout: Duration = duration(minutes=10)
-    custom_api_sensor: Optional[Callable] = None
-    retries: int = 2
+    dagrun_timeout: Duration = DEFAULT_DAGRUN_TIMEOUT
+    sensor_poke_interval: int = 10
+    sensor_timeout: int = 100
+    sensor_mode: str = 'poke'
+    retries: int = DEFAULT_RETRIES
     start_date: DateTime = START_DATE

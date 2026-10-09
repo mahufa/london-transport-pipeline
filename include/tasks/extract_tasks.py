@@ -12,10 +12,7 @@ def make_ingest_data_task(
         dataset: Dataset,
         templated_params: dict = None,
 ) -> Callable:
-    templates = (
-        {param_name : param for param_name, param in templated_params.items()}
-        if templated_params else {}
-    )
+    templates = dict(templated_params) if templated_params else {}
     templates['path'] = f'{dataset.uri}{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'
 
     @task(templates_dict=templates, outlets=[dataset])
@@ -36,10 +33,10 @@ def make_ingest_data_task(
 
 
 def make_check_api_sensor(
+    poke_interval: int,
+    timeout: int,
+    mode: str,
     test_endpoint: str = '/Line/Meta/Modes',
-    poke_interval=10,
-    timeout=100,
-    mode='poke',
 ) -> Callable:
 
     @task.sensor(
