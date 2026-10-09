@@ -1,22 +1,25 @@
 from typing import Callable
 
+from airflow.datasets import Dataset
 from airflow.decorators import task
 from airflow.sensors.base import PokeReturnValue
+
+from include.datasets import EXTRA_VAL_KEYS
 
 
 def make_ingest_data_task(
         endpoint: str,
-        dir_name: str,
+        dataset: Dataset,
         templated_params: dict = None,
 ) -> Callable:
     templates = (
         {param_name : param for param_name, param in templated_params.items()}
         if templated_params else {}
     )
-    templates['path'] = f'{dir_name}{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'
+    templates['path'] = f'{dataset.uri}{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'
 
-    @task(templates_dict=templates)
-    def _ingest_data_task(templates_dict) -> str:
+    @task(templates_dict=templates, outlets=[dataset])
+    def _ingest_data_task(templates_dict, *, outlet_events=None) -> None:
         from include.helpers.api_client import get_api_data_stream
         from include.helpers.storage import store_stream_in_s3
 
@@ -27,7 +30,7 @@ def make_ingest_data_task(
 
             store_stream_in_s3(api_response.raw, path)
 
-        return path
+        outlet_events[dataset].extra = {EXTRA_VAL_KEYS['raw']: path}
 
     return _ingest_data_task
 
