@@ -93,6 +93,8 @@ The warehouse schema (`db_init/`: schemas, bronze tables, silver views, gold sta
 ## Configuration:
 Airflow connections and variables are managed declaratively as `AIRFLOW_CONN_*` / `AIRFLOW_VAR_*` environment variables under `x-airflow-common` in `docker-compose.yaml`. To run this pipeline against real AWS S3, replace the `s3_conn` connection's values there with your AWS credentials.
 
+Task failures are reported to Microsoft Teams through the `teams` connection. It's not configured by default, so failures are only logged with a warning; to enable alerts, uncomment `AIRFLOW_CONN_TEAMS` in `docker-compose.yaml` and set your incoming webhook URL as its `host`.
+
 Metabase's admin credentials and the name of the `postgres_dw` connection it creates are configured via environment variables on the `metabase-init` service in `docker-compose.yaml`.
 
 ## Teardown
