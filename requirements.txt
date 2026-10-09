@@ -1,3 +1,2 @@
-apache-airflow-providers-common-io
-apache-airflow-providers-amazon[s3fs]
+apache-airflow==2.10.5
 ijson==3.3.0
