@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: raw_tfl
+        description: Raw TfL records as jsonb, one row per record per batch.
+
+      - name: rejected_records
+        description: Dead-letter table for ingest and silver rejects.
