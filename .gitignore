@@ -11,3 +11,6 @@ airflow.cfg
 airflow.db
 include/data
 logs/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
