@@ -4,6 +4,7 @@
         r.batch_id,
         'silver' AS stage,
         r.payload::text AS record,
+        r.loaded_at AS rejected_at,
         stg.error
     FROM {{ ref('stg_' ~ source_name) }} stg
     JOIN {{ source('bronze', 'raw_tfl') }} r
