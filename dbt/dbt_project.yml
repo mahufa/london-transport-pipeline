@@ -2,6 +2,8 @@ name: 'london_transport_pipeline'
 version: '1.0.0'
 profile: 'london_transport_pipeline'
 config-version: 2
+vars:
+    max_reject_ratio: 0.1
 models:
   london_transport_pipeline:
     silver:
