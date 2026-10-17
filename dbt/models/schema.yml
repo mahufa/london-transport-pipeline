@@ -1,0 +1,18 @@
+models:
+  - name: stg_bike_points
+    data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: bike_points
+
+  - name: stg_chargers
+    data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: chargers
+
+  - name: stg_roads
+    data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: roads
