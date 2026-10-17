@@ -4,15 +4,157 @@ models:
       - check_reject_ratio:
           arguments:
             source_name: bike_points
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - batch_id
+              - record_key
+    columns:
+      - name: batch_id
+        data_tests: [not_null]
+      - name: record_key
+        data_tests: [not_null]
+      - name: loaded_at
+        data_tests: [not_null]
 
   - name: stg_chargers
     data_tests:
       - check_reject_ratio:
           arguments:
             source_name: chargers
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - batch_id
+              - record_key
+    columns:
+      - name: batch_id
+        data_tests: [not_null]
+      - name: record_key
+        data_tests: [not_null]
+      - name: loaded_at
+        data_tests: [not_null]
 
   - name: stg_roads
     data_tests:
       - check_reject_ratio:
           arguments:
             source_name: roads
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - batch_id
+              - record_key
+    columns:
+      - name: batch_id
+        data_tests: [not_null]
+      - name: record_key
+        data_tests: [not_null]
+      - name: loaded_at
+        data_tests: [not_null]
+
+  - name: int_validated_bike_points
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - batch_id
+              - bike_point_id
+    columns:
+      - name: bike_point_id
+        data_tests: [not_null]
+      - name: common_name
+        data_tests: [not_null]
+      - name: lat
+        data_tests: [not_null]
+      - name: lon
+        data_tests: [not_null]
+      - name: nb_bikes
+        data_tests: [not_null]
+      - name: nb_docks
+        data_tests: [not_null]
+      - name: nb_e_bikes
+        data_tests: [not_null]
+      - name: nb_empty_docks
+        data_tests: [not_null]
+      - name: nb_standard_bikes
+        data_tests: [not_null]
+      - name: updated_at
+        data_tests: [not_null]
+      - name: batch_id
+        data_tests: [not_null]
+      - name: loaded_at
+        data_tests: [not_null]
+
+  - name: int_validated_chargers
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - batch_id
+              - connector_id
+    columns:
+      - name: connector_id
+        data_tests: [not_null]
+      - name: station_name
+        data_tests: [not_null]
+      - name: lat
+        data_tests: [not_null]
+      - name: lon
+        data_tests: [not_null]
+      - name: connector_type
+        data_tests: [not_null]
+      - name: parent_station
+        data_tests: [not_null]
+      - name: power_kw
+        data_tests: [not_null]
+      - name: status
+        data_tests: [not_null]
+      - name: updated_at
+        data_tests: [not_null]
+      - name: batch_id
+        data_tests: [not_null]
+      - name: loaded_at
+        data_tests: [not_null]
+
+  - name: int_validated_roads
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - batch_id
+              - disruption_id
+              - disrupted_segment_id
+    columns:
+      - name: street_name
+        data_tests: [not_null]
+      - name: closure
+        data_tests: [not_null]
+      - name: directions
+        data_tests: [not_null]
+      - name: disrupted_segment_id
+        data_tests: [not_null]
+      - name: disruption_id
+        data_tests: [not_null]
+      - name: start_lat
+        data_tests: [not_null]
+      - name: start_lon
+        data_tests: [not_null]
+      - name: end_lat
+        data_tests: [not_null]
+      - name: end_lon
+        data_tests: [not_null]
+      - name: severity
+        data_tests: [not_null]
+      - name: category
+        data_tests: [not_null]
+      - name: subcategory
+        data_tests: [not_null]
+      - name: start_date_time
+        data_tests: [not_null]
+      - name: end_date_time
+        data_tests: [not_null]
+      - name: batch_id
+        data_tests: [not_null]
+      - name: loaded_at
+        data_tests: [not_null]
