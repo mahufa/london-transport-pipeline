@@ -3,7 +3,7 @@ version: '1.0.0'
 profile: 'london_transport_pipeline'
 config-version: 2
 vars:
-    max_reject_ratio: 0.1
+  max_reject_ratio: 0.1
 models:
   london_transport_pipeline:
     silver:
@@ -11,4 +11,9 @@ models:
       +materialized: view
     gold:
       +schema: gold
-      +materialized: incremental
+      dims:
+        +materialized: table
+      facts:
+        +materialized: incremental
+        +incremental_strategy: merge
+        +on_schema_change: append_new_columns
