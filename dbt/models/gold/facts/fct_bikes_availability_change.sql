@@ -1,4 +1,7 @@
-{{ config(unique_key=['bike_point_id', 'updated_at']) }}
+{{ config(
+    incremental_strategy='append',
+    indexes=[{'columns': ['bike_point_id', 'updated_at'], 'unique': True}]
+) }}
 WITH changes AS (
 SELECT
     bike_point_id,
@@ -13,9 +16,10 @@ SELECT
         PARTITION BY bike_point_id, updated_at
         ORDER BY loaded_at ASC
     ) AS rn
-FROM {{ ref('int_validated_bike_points') }}
+FROM {{ ref('int_validated_bike_points') }} v
 {% if is_incremental() %}
-WHERE loaded_at > (SELECT max(loaded_at) FROM {{ this }})
+WHERE {{ incremental_since('loaded_at') }}
+    AND {{ not_in_this(['bike_point_id', 'updated_at']) }}
 {% endif %}
 )
 

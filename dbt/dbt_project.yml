@@ -4,6 +4,7 @@ profile: 'london_transport_pipeline'
 config-version: 2
 vars:
   max_reject_ratio: 0.1
+  incremental_lookback: 2 hours
 models:
   london_transport_pipeline:
     silver:
