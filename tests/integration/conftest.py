@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-import psycopg2
+import psycopg
 from pytest import fixture, skip
 
 DB_INIT = Path(__file__).parents[2] / 'db_init'
@@ -13,8 +13,8 @@ def pg_conn():
     if not dsn:
         skip('DW_TEST_DSN not set')
 
-    conn = psycopg2.connect(dsn)
-    with conn, conn.cursor() as cur:
+    conn = psycopg.connect(dsn, autocommit=True)
+    with conn.cursor() as cur:
         cur.execute('DROP SCHEMA IF EXISTS bronze, silver, gold CASCADE')
         for path in sorted(DB_INIT.glob('*.sql')):
             cur.execute(path.read_text())
@@ -25,5 +25,5 @@ def pg_conn():
 
 @fixture(autouse=True)
 def clean_bronze(pg_conn):
-    with pg_conn, pg_conn.cursor() as cur:
+    with pg_conn.cursor() as cur:
         cur.execute('TRUNCATE bronze.raw_tfl, bronze.rejected_records')
