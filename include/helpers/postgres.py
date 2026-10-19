@@ -12,7 +12,7 @@ from include.paths import SQL_DIR
 
 BUFFER_SIZE = 1024 * 1024
 COPY_LANDING = 'COPY landing (ordinal, record_key, payload) FROM STDIN'
-COPY_REJECTED = 'COPY bronze.rejected_records (source, batch_id, stage, record, error) FROM STDIN'
+COPY_REJECTED = 'COPY bronze.rejected_records (source, batch_id, record, error) FROM STDIN'
 
 
 def stream_to_pg_with_dlq(
@@ -75,7 +75,7 @@ def _prepare_dlq_stream(
         source: str,
 ) -> io.StringIO:
     dlq_str = '\n'.join(
-        f'{source}\t{batch_id}\tingest\t{_escape_for_copy(rec)}\t{_escape_for_copy(err_msg)}' for rec, err_msg in
+        f'{source}\t{batch_id}\t{_escape_for_copy(rec)}\t{_escape_for_copy(err_msg)}' for rec, err_msg in
         dlq_buffer)
     return io.StringIO(dlq_str)
 

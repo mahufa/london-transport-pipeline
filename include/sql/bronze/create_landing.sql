@@ -10,4 +10,4 @@ WHERE source = %(source)s
 
 DELETE FROM bronze.rejected_records
 WHERE source = %(source)s
-    AND batch_id = %(batch_id)s AND stage = 'ingest';
+    AND batch_id = %(batch_id)s;
