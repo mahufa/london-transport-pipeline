@@ -1,4 +1,6 @@
-from airflow.models.dataset import DatasetEvent
+from typing import Any, Mapping, Sequence
+
+from airflow.sdk import Asset
 
 from include.datasets import EXTRA_VAL_KEYS
 
@@ -14,10 +16,12 @@ def get_dataset_short_name(dataset_uri: str) -> str:
     return dataset_uri.split(sep="/")[0]
 
 
-def get_event_extras(triggering_dataset_events: dict) -> dict[str, list[str]]:
+def get_event_extras(
+    triggering_asset_events: Mapping[Asset, Sequence[Any]],
+) -> dict[str, list[str]]:
     extras_grouped_by_datasets = {
-        dataset_uri: _get_extras_from_events_list(event_list, dataset_uri)
-        for dataset_uri, event_list in triggering_dataset_events.items()
+        asset.uri: _get_extras_from_events_list(event_list, asset.uri)
+        for asset, event_list in triggering_asset_events.items()
     }
     return extras_grouped_by_datasets
 
@@ -27,7 +31,7 @@ def get_layer_from_uri(uri: str):
 
 
 def _get_extras_from_events_list(
-    event_list: list[DatasetEvent],
+    event_list: Sequence[Any],
     dataset_uri: str,
 ) -> list[str]:
     extras = [_get_extra_val_from_event(event, dataset_uri) for event in event_list]
@@ -35,13 +39,13 @@ def _get_extras_from_events_list(
 
 
 def _get_extra_val_from_event(
-    event: DatasetEvent,
+    event: Any,
     dataset_uri: str
 ) -> str:
     extra_val_key = EXTRA_VAL_KEYS[get_layer_from_uri(dataset_uri)]
     extra_val = event.extra.get(extra_val_key)
     if extra_val is None:
         raise KeyError(
-            f'Extra value not found in metadata for dataset {event.uri}'
+            f'Extra value not found in metadata for dataset {event.asset.uri}'
         )
     return extra_val

@@ -1,6 +1,6 @@
 from typing import IO
 
-from airflow.models import Variable
+from airflow.sdk import Variable
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 
 from include.connections import BUCKET_NAME_VAR, S3_CONN_ID

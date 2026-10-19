@@ -1,4 +1,4 @@
-from airflow.decorators import dag
+from airflow.sdk import CronDataIntervalTimetable, dag
 
 from pendulum import duration
 
@@ -61,12 +61,13 @@ configs = [
         dag_id='tfl_roads',
         tag='roads',
         endpoint='/Road/all/Street/Disruption',
+        # manual runs have no data interval in Airflow 3, so they fall back to the day before run_after
         templated_params={
-            'startDate': '{{ data_interval_start.isoformat() }}',
-            'endDate': '{{ data_interval_end.isoformat() }}',
+            'startDate': '{{ (data_interval_start | default(dag_run.run_after - macros.timedelta(days=1), true)).isoformat() }}',
+            'endDate': '{{ (data_interval_end | default(dag_run.run_after, true)).isoformat() }}',
         },
         dataset=DATASETS['roads'].raw,
-        schedule='@daily',
+        schedule=CronDataIntervalTimetable('@daily', timezone='UTC'),
         dagrun_timeout=duration(hours=1),
         sensor_poke_interval=30,
         sensor_timeout=300,

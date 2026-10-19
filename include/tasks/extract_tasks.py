@@ -1,19 +1,18 @@
 from typing import Callable
 
-from airflow.datasets import Dataset
-from airflow.decorators import task
-from airflow.sensors.base import PokeReturnValue
+from airflow.sdk import Asset, PokeReturnValue, task
 
 from include.datasets import EXTRA_VAL_KEYS
 
 
 def make_ingest_data_task(
         endpoint: str,
-        dataset: Dataset,
-        templated_params: dict = None,
+        dataset: Asset,
+        templated_params: dict | None = None,
 ) -> Callable:
     templates = dict(templated_params) if templated_params else {}
-    templates['path'] = f'{dataset.uri}{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'
+    # manual runs have no logical_date in Airflow 3, so ds/ts_nodash come from run_after
+    templates['path'] = f'{dataset.uri}{{{{ dag_run.run_after | ds }}}}/{{{{ dag_run.run_after | ts_nodash }}}}.json'
 
     @task(templates_dict=templates, outlets=[dataset])
     def _ingest_data_task(templates_dict, *, outlet_events=None) -> None:

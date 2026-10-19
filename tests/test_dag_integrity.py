@@ -9,7 +9,7 @@ EXPECTED_DAG_IDS = {'tfl_bikes', 'tfl_chargers', 'tfl_roads', 'loader'}
 
 @pytest.fixture(scope='session')
 def dag_bag() -> DagBag:
-    return DagBag(dag_folder=str(DAGS_DIR), include_examples=False)
+    return DagBag(dag_folder=str(DAGS_DIR))
 
 
 def test_no_import_errors(dag_bag):

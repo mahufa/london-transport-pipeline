@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+from airflow.sdk import Asset
 from pytest import mark, raises
 
 from include.helpers.dataset_utils import (
@@ -40,7 +41,7 @@ def test_dataset_short_name_is_correct():
 
 
 def test_get_event_extras_missing_extra_raises():
-    events = {'roads/raw/': [
+    events = {Asset('roads/raw/'): [
         _event(
             'roads/raw/',
             batch_id='x'
@@ -52,7 +53,7 @@ def test_get_event_extras_missing_extra_raises():
 
 def test_get_event_extras_groups_by_dataset():
     events = {
-        'roads/raw/': [
+        Asset('roads/raw/'): [
             _event(
                 'roads/raw/',
                 path='roads/2024-01-01/20240101T000000.json',
@@ -62,7 +63,7 @@ def test_get_event_extras_groups_by_dataset():
                 path='roads/2024-01-01/20240101T010000.json',
             ),
         ],
-        'chargers/bronze/': [
+        Asset('chargers/bronze/'): [
             _event(
                 'chargers/bronze/',
                 batch_id='240101T000000',
@@ -82,4 +83,4 @@ def test_get_event_extras_groups_by_dataset():
 
 
 def _event(uri, **extra):
-    return SimpleNamespace(uri=uri, extra=extra)
+    return SimpleNamespace(asset=SimpleNamespace(uri=uri), extra=extra)
