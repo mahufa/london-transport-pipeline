@@ -91,3 +91,65 @@ models:
         data_tests: [not_null]
       - name: loaded_at
         data_tests: [not_null]
+
+  - name: dim_disruption
+    description: Latest attributes of each disruption.
+    columns:
+      - name: disruption_id
+        data_tests: [unique, not_null]
+      - name: category
+        data_tests: [not_null]
+      - name: subcategory
+        data_tests: [not_null]
+      - name: severity
+        data_tests: [not_null]
+
+  - name: dim_street_segment
+    description: Latest attributes of each street segment.
+    columns:
+      - name: disrupted_segment_id
+        data_tests: [unique, not_null]
+      - name: start_lat
+        data_tests: [not_null]
+      - name: start_lon
+        data_tests: [not_null]
+      - name: end_lat
+        data_tests: [not_null]
+      - name: end_lon
+        data_tests: [not_null]
+      - name: street_name
+        data_tests: [not_null]
+
+  - name: fct_disrupted_segment
+    description: Disrupted street segments with their latest dates.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [disruption_id, disrupted_segment_id]
+    columns:
+      - name: disruption_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_disruption')
+                field: disruption_id
+      - name: disrupted_segment_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_street_segment')
+                field: disrupted_segment_id
+      - name: start_date_time
+        data_tests: [not_null]
+      - name: end_date_time
+        data_tests: [not_null]
+      - name: closure
+        data_tests: [not_null]
+      - name: directions
+        data_tests: [not_null]
+      - name: batch_id
+        data_tests: [not_null]
+      - name: loaded_at
+        data_tests: [not_null]
