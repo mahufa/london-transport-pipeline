@@ -1,7 +1,6 @@
 from typing import Callable
 
-from airflow import XComArg
-from airflow.decorators import task, task_group
+from airflow.sdk import XComArg, task, task_group
 
 from include.datasets import EXTRA_VAL_KEYS, LayerDatasets
 from include.helpers.dataset_utils import get_dataset_short_name, get_batch_id_from_path

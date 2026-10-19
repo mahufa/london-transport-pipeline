@@ -1,16 +1,14 @@
 from typing import Callable
 
-from airflow.datasets import Dataset
-from airflow.decorators import task
-from airflow.sensors.base import PokeReturnValue
+from airflow.sdk import Asset, PokeReturnValue, task
 
 from include.datasets import EXTRA_VAL_KEYS
 
 
 def make_ingest_data_task(
         endpoint: str,
-        dataset: Dataset,
-        templated_params: dict = None,
+        dataset: Asset,
+        templated_params: dict | None = None,
 ) -> Callable:
     templates = dict(templated_params) if templated_params else {}
     templates['path'] = f'{dataset.uri}{{{{ ds }}}}/{{{{ ts_nodash }}}}.json'

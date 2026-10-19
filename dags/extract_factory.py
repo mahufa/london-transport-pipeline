@@ -1,4 +1,4 @@
-from airflow.decorators import dag
+from airflow.sdk import dag
 
 from pendulum import duration
 

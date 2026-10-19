@@ -18,8 +18,8 @@ def notify_teams(context):
 
 
 def _is_teams_configured() -> bool:
-    from airflow.exceptions import AirflowNotFoundException
-    from airflow.hooks.base import BaseHook
+    from airflow.sdk import BaseHook
+    from airflow.sdk.exceptions import AirflowNotFoundException
 
     try:
         BaseHook.get_connection(TEAMS_CONN_ID)

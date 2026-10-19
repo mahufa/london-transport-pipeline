@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from airflow.exceptions import AirflowException
+from airflow.sdk.exceptions import AirflowException
 from airflow.providers.http.hooks.http import HttpHook
 from requests import RequestException, Response
 

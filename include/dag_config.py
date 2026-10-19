@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from airflow.datasets import Dataset
+from airflow.sdk import Asset
 from pendulum import datetime, Duration, DateTime, UTC, duration
 
 
@@ -13,7 +13,7 @@ class ExtractDagConfig:
     dag_id: str
     tag: str
     endpoint: str
-    dataset: Dataset
+    dataset: Asset
     templated_params: Optional[dict] = None
     schedule: str = "*/30 * * * *"
     dagrun_timeout: Duration = DEFAULT_DAGRUN_TIMEOUT
