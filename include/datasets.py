@@ -1,26 +1,26 @@
 from dataclasses import dataclass
 
-from airflow.datasets import Dataset
+from airflow.sdk import Asset
 
 
 @dataclass(frozen=True)
 class LayerDatasets:
-    raw: Dataset
-    bronze: Dataset
+    raw: Asset
+    bronze: Asset
 
 
 DATASETS: dict[str, LayerDatasets] = {
     "bike_points": LayerDatasets(
-        raw=Dataset("bike_points/raw/"),
-        bronze=Dataset("bike_points/bronze/"),
+        raw=Asset("bike_points/raw/"),
+        bronze=Asset("bike_points/bronze/"),
     ),
     "chargers": LayerDatasets(
-        raw=Dataset("chargers/raw/"),
-        bronze=Dataset("chargers/bronze/"),
+        raw=Asset("chargers/raw/"),
+        bronze=Asset("chargers/bronze/"),
     ),
     "roads": LayerDatasets(
-        raw=Dataset("roads/raw/"),
-        bronze=Dataset("roads/bronze/"),
+        raw=Asset("roads/raw/"),
+        bronze=Asset("roads/bronze/"),
     ),
 }
 

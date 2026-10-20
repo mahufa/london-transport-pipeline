@@ -1,0 +1,41 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: bronze
+    tables:
+      - name: raw_tfl
+        description: Raw TfL records as jsonb, one row per record per batch.
+
+      - name: raw_bike_points
+        identifier: raw_tfl
+        description: Bike points rows of raw_tfl, extracted every 30 minutes.
+        config:
+          loaded_at_field: loaded_at
+          freshness:
+            warn_after: {count: 1, period: hour}
+            error_after: {count: 2, period: hour}
+            filter: "source = 'bike_points'"
+
+      - name: raw_chargers
+        identifier: raw_tfl
+        description: Chargers rows of raw_tfl, extracted every 30 minutes.
+        config:
+          loaded_at_field: loaded_at
+          freshness:
+            warn_after: {count: 1, period: hour}
+            error_after: {count: 2, period: hour}
+            filter: "source = 'chargers'"
+
+      - name: raw_roads
+        identifier: raw_tfl
+        description: Roads rows of raw_tfl, extracted daily.
+        config:
+          loaded_at_field: loaded_at
+          freshness:
+            warn_after: {count: 25, period: hour}
+            error_after: {count: 49, period: hour}
+            filter: "source = 'roads'"
+
+      - name: rejected_records
+        description: Dead-letter table for ingest and silver rejects.

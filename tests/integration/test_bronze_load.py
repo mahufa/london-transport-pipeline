@@ -62,6 +62,6 @@ def _errors(pg_conn) -> list:
 
 
 def _query(pg_conn, sql: str) -> list:
-    with pg_conn, pg_conn.cursor() as cur:
+    with pg_conn.cursor() as cur:
         cur.execute(sql)
         return [row[0] for row in cur.fetchall()]

@@ -1,0 +1,73 @@
+models:
+  - name: stg_bike_points
+    description: Parsed and validated bike points.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [batch_id, record_key]
+
+  - name: stg_chargers
+    description: Parsed and validated charger connectors.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [batch_id, record_key]
+
+  - name: stg_roads
+    description: Parsed and validated road disruptions.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [batch_id, record_key]
+
+  - name: int_validated_bike_points
+    description: Valid bike points.
+    data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: bike_points
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [batch_id, bike_point_id]
+    columns:
+      - name: bike_point_id
+        data_tests: [not_null]
+      - name: updated_at
+        data_tests: [not_null]
+
+  - name: int_validated_chargers
+    description: Valid charger connectors.
+    data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: chargers
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [batch_id, connector_id]
+    columns:
+      - name: connector_id
+        data_tests: [not_null]
+      - name: updated_at
+        data_tests: [not_null]
+
+  - name: int_validated_roads
+    description: Valid road disruptions.
+    data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: roads
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [batch_id, disruption_id, disrupted_segment_id]
+    columns:
+      - name: disruption_id
+        data_tests: [not_null]
+      - name: disrupted_segment_id
+        data_tests: [not_null]
+      - name: start_date_time
+        data_tests: [not_null]
+      - name: end_date_time
+        data_tests: [not_null]
+
+  - name: int_rejected_records
+    description: Silver and ingest rejects from all sources.

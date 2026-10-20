@@ -37,8 +37,8 @@ def test_prepare_dlq_stream():
     ).read().split('\n')
 
     assert lines == [
-        'roads\tbatch\tingest\t{"a":"x\\ty"}\tMissing record key',
-        'roads\tbatch\tingest\t1\tNot a JSON object',
+        'roads\tbatch\t{"a":"x\\ty"}\tMissing record key',
+        'roads\tbatch\t1\tNot a JSON object',
     ]
 
 

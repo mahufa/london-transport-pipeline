@@ -26,13 +26,11 @@ WHERE rn = 1;
 INSERT INTO bronze.rejected_records (
     source,
     batch_id,
-    stage,
     record,
     error)
 SELECT
     %(source)s,
     %(batch_id)s,
-    'ingest',
     payload::text,
 'duplicate record key'
 FROM ranked

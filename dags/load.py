@@ -1,4 +1,4 @@
-from airflow.decorators import dag
+from airflow.sdk import dag
 
 from include.callbacks import notify_teams
 from include.dag_config import START_DATE, DEFAULT_DAGRUN_TIMEOUT, DEFAULT_RETRIES

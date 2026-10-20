@@ -12,9 +12,15 @@ x-airflow-common:
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow:5432/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: false
     AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS: false
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__API_AUTH__JWT_SECRET: local-dev-jwt-secret
     AIRFLOW_CONN_TFL_API: '{
     "conn_type": "http",
      "host": "api.tfl.gov.uk", "schema":"https"}'
+    AIRFLOW_CONN_METABASE: '{
+    "conn_type": "http",
+     "host": "metabase", "schema":"http", "login": "admin@example.com", "password": "MetabaseAdmin123", "port": 3000}'
     AIRFLOW_CONN_POSTGRES_DW: '{"conn_type": "postgres", "host": "postgres_dw", "login": "dw_user", "password": "dw_password", "schema": "tfl_dw",  "port": 5432}'
     AIRFLOW_CONN_S3_CONN: '{"conn_type": "aws", "login": "minio", "password": "minio123", "extra": {"endpoint_url": "http://minio:9000"}}'
     AIRFLOW_VAR_BUCKET_NAME: *tfl-data
@@ -24,6 +30,7 @@ x-airflow-common:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./include:/opt/airflow/include
+    - ./dbt:/opt/airflow/dbt
   depends_on:
     postgres-airflow:
       condition: service_healthy
@@ -48,7 +55,7 @@ services:
 
   airflow-init:
     <<: *airflow-common
-    command: version
+    command: ["bash", "-c", "$$DBT_VENV/bin/dbt deps --project-dir /opt/airflow/dbt"]
     environment:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: 'true'
@@ -59,11 +66,16 @@ services:
       postgres-airflow:
         condition: service_healthy
 
-  airflow-webserver:
+  airflow-apiserver:
     <<: *airflow-common
-    command: webserver
+    command: api-server
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     depends_on:
       airflow-init:
         condition: service_completed_successfully
@@ -71,6 +83,13 @@ services:
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
     depends_on:
       airflow-init:
         condition: service_completed_successfully

@@ -43,6 +43,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Install dbt packages
+        run: >
+          docker run --rm
+          --user "$(id -u):0"
+          -v "${{ github.workspace }}:/opt/airflow/project"
+          -w /opt/airflow/project
+          tfl-airflow:ci
+          bash -c '$DBT_VENV/bin/dbt deps --project-dir dbt'
+
       - name: Run tests
         run: >
           docker run --rm
@@ -51,6 +60,7 @@ jobs:
           -w /opt/airflow/project
           -e PYTHONPATH=/opt/airflow/project
           -e AIRFLOW__CORE__LOAD_EXAMPLES=false
+          -e AIRFLOW__COSMOS__ENABLE_CACHE_DBT_LS=False
           -e CONNECTION_CHECK_MAX_COUNT=0
           -e DW_TEST_DSN=postgresql://test:test@postgres:5432/test
           tfl-airflow:ci

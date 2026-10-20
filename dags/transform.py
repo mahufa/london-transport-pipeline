@@ -1,12 +1,36 @@
-from airflow.decorators import dag
+from airflow.sdk import dag, task, Param
+from pendulum import duration
+from cosmos import DbtTaskGroup, ProfileConfig, ExecutionConfig, ProjectConfig
+from cosmos.operators.local import DbtSourceLocalOperator
+from cosmos.profiles.postgres import PostgresUserPasswordProfileMapping
 
 from include.callbacks import notify_teams
-from include.dag_config import START_DATE, DEFAULT_RETRIES, DEFAULT_DAGRUN_TIMEOUT
+from include.connections import POSTGRES_CONN_ID
+from include.dag_config import START_DATE
 from include.datasets import DATASETS
-from include.paths import INCLUDE_DIR
-from include.tasks.common_tasks import make_get_extras_from_triggering_data_task, make_extract_dataset_extras_task
-from include.tasks.transform_tasks import build_bronze_dataset_flow
+from include.helpers.metabase import sync_schema
+from include.paths import DBT_EXECUTABLE, DBT_PROJECT_DIR
 
+profile_config = ProfileConfig(
+    profile_name='london_transport_pipeline',
+    target_name='airflow',
+    profile_mapping=PostgresUserPasswordProfileMapping(
+        conn_id=POSTGRES_CONN_ID,
+        profile_args={'schema': 'public'},
+    ),
+)
+
+execution_config = ExecutionConfig(
+    dbt_executable_path=DBT_EXECUTABLE,
+)
+
+project_config = ProjectConfig(
+    dbt_project_path=DBT_PROJECT_DIR,
+    install_dbt_deps=False,
+    dbt_vars={
+        'incremental_lookback': '{{ params.incremental_lookback }}',
+    },
+)
 
 @dag(
     dag_id='transformer',
@@ -17,25 +41,40 @@ from include.tasks.transform_tasks import build_bronze_dataset_flow
             | DATASETS['roads'].bronze
     ),
     catchup=False,
-    description='This DAG checks and transforms tfl data',
+    max_active_runs=1,
+    description='This DAG transforms tfl data',
     tags=['tfl', 'transform'],
     default_args={
-        'retries': DEFAULT_RETRIES,
+        'retries': 0,
         'on_failure_callback': notify_teams,
     },
-    dagrun_timeout=DEFAULT_DAGRUN_TIMEOUT,
-    template_searchpath=[str(INCLUDE_DIR)]
+    dagrun_timeout=duration(minutes=30),
+    params={
+        'incremental_lookback': Param('2 hours', type='string'),
+    },
 )
 def transform():
-    all_bronze_batch_ids = make_get_extras_from_triggering_data_task()()
+    DbtSourceLocalOperator(
+        task_id='check_source_freshness',
+        project_dir=DBT_PROJECT_DIR,
+        profile_config=profile_config,
+        dbt_executable_path=DBT_EXECUTABLE,
+        install_deps=False,
+    )
 
-    for layer_datasets in DATASETS.values():
-        extract_dataset_batch_ids = make_extract_dataset_extras_task(layer_datasets.bronze)
-        transform_dataset = build_bronze_dataset_flow(layer_datasets)
+    transform_data = DbtTaskGroup(
+        group_id='transform_data',
+        project_config=project_config,
+        profile_config=profile_config,
+        execution_config=execution_config,
+        on_warning_callback=notify_teams,
+    )
 
-        transform_dataset.expand(
-            batch_id=extract_dataset_batch_ids(all_bronze_batch_ids)
-        )
+    @task
+    def sync_metabase_schema():
+        sync_schema()
+
+    transform_data >> sync_metabase_schema()
 
 
 transform()
