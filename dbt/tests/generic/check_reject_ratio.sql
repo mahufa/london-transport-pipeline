@@ -6,6 +6,8 @@
 {%- set max_reject_ratio = var('max_reject_ratio') -%}
 {% endif %}
 {%- set batch_id = var('batch_id', none) -%}
+{#- read only at run time: Cosmos passes this var as an unrendered template while parsing -#}
+{%- set lookback = var('incremental_lookback') if execute else '0' -%}
 
 -- warn-only: invalid rows are already filtered out, so a high ratio is an alert, not a gate
 -- model holds only valid rows, so rejects = raw + ingest rejects - valid
@@ -30,7 +32,7 @@ batches AS (
     {% endif %}
     GROUP BY batch_id
     {% if not batch_id %}
-    HAVING max(loaded_at) > (SELECT max(loaded_at) FROM records) - interval '{{ var('incremental_lookback') }}'
+    HAVING max(loaded_at) > (SELECT max(loaded_at) FROM records) - interval '{{ lookback }}'
     {% endif %}
 ),
 
