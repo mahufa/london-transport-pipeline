@@ -12,7 +12,7 @@ SELECT
     r.payload->>'lat' AS lat_raw,
     r.payload->>'lon' AS lon_raw,
     p.*
-FROM {{ source('bronze', 'raw_tfl') }} r
+FROM {{ source('bronze', 'raw_bike_points') }} r
 CROSS JOIN LATERAL (
     SELECT
         {{ extract_prop('NbBikes') }} AS nb_bikes_raw,

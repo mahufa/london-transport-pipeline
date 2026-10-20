@@ -24,7 +24,7 @@ SELECT
     r.payload->>'subCategory' AS subcategory_raw,
     r.payload->>'startDateTime' AS start_raw,
     r.payload->>'endDateTime' AS end_raw
-FROM {{ source('bronze', 'raw_tfl') }} r
+FROM {{ source('bronze', 'raw_roads') }} r
 WHERE r.source = 'roads'
 ),
 

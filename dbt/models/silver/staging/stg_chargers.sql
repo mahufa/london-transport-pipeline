@@ -14,7 +14,7 @@ SELECT
     r.payload->>'lat' AS lat_raw,
     r.payload->>'lon' AS lon_raw,
     p.*
-FROM {{ source('bronze', 'raw_tfl') }} r
+FROM {{ source('bronze', 'raw_chargers') }} r
 CROSS JOIN LATERAL (
     SELECT
         {{ extract_prop('ConnectorType') }} AS connector_type_raw,
