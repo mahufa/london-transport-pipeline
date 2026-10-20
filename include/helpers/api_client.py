@@ -6,41 +6,42 @@ from requests import RequestException, Response
 
 from include.connections import TFL_API_CONN_ID
 
+logger = getLogger(__name__)
 
-# TODO: refactor module to look like storage.py
 
 def get_api_data_stream(
     endpoint: str,
     params: dict = None,
+    api: HttpHook = None,
 ) -> Response:
-    api = _get_api_hook()
-    response = api.run(
+    api = api or _get_api_hook()
+
+    return api.run(
         endpoint=endpoint,
-        data=params, #HttpHook expects GET params passed via `data=...`
+        data=params,  # HttpHook expects GET params passed via `data=...`
         headers={'Accept-Encoding': 'gzip'},
         extra_options={'stream': True, 'timeout': (3.0, 30.0)},
     )
-    return response
 
 
 def is_api_available(
     endpoint: str,
     params: dict = None,
+    api: HttpHook = None,
 ) -> bool:
+    api = api or _get_api_hook()
+
     try:
-        api = _get_api_hook()
-        # stream and close right away, so only the status and headers are read, not the body
         api.run(
             endpoint=endpoint,
             data=params,
-            extra_options={'stream': True, 'timeout': (3.0, 5.0)},
+            extra_options={'stream': True, 'timeout': (3.0, 30.0)},
         ).close()
     except (RequestException, AirflowException):
-        logger = getLogger(__name__)
-        logger.exception("Failed to connect to API")
+        logger.exception('Failed to connect to API')
         return False
-    else:
-        return True
+
+    return True
 
 
 def _get_api_hook() -> HttpHook:
