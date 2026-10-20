@@ -67,6 +67,7 @@ def transform():
         project_config=project_config,
         profile_config=profile_config,
         execution_config=execution_config,
+        on_warning_callback=notify_teams,
     )
 
     @task

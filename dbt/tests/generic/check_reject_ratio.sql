@@ -1,10 +1,13 @@
 {% test check_reject_ratio(model, source_name, max_reject_ratio=none) -%}
 
+{{ config(severity='warn') }}
+
 {% if max_reject_ratio is none %}
 {%- set max_reject_ratio = var('max_reject_ratio') -%}
 {% endif %}
 {%- set batch_id = var('batch_id', none) -%}
 
+-- warn-only: invalid rows are already filtered out, so a high ratio is an alert, not a gate
 -- model holds only valid rows, so rejects = raw + ingest rejects - valid
 WITH records AS (
     SELECT batch_id
