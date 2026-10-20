@@ -23,13 +23,18 @@ def get_api_data_stream(
     return response
 
 
-def is_api_available(test_endpoint) -> bool:
+def is_api_available(
+    endpoint: str,
+    params: dict = None,
+) -> bool:
     try:
         api = _get_api_hook()
+        # stream and close right away, so only the status and headers are read, not the body
         api.run(
-            endpoint=test_endpoint,
-            extra_options={'timeout': (3.0, 5.0)},
-        )
+            endpoint=endpoint,
+            data=params,
+            extra_options={'stream': True, 'timeout': (3.0, 5.0)},
+        ).close()
     except (RequestException, AirflowException):
         logger = getLogger(__name__)
         logger.exception("Failed to connect to API")
