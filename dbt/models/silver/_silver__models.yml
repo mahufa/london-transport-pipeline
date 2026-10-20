@@ -2,9 +2,6 @@ models:
   - name: stg_bike_points
     description: Parsed and validated bike points.
     data_tests:
-      - check_reject_ratio:
-          arguments:
-            source_name: bike_points
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [batch_id, record_key]
@@ -12,9 +9,6 @@ models:
   - name: stg_chargers
     description: Parsed and validated charger connectors.
     data_tests:
-      - check_reject_ratio:
-          arguments:
-            source_name: chargers
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [batch_id, record_key]
@@ -22,9 +16,6 @@ models:
   - name: stg_roads
     description: Parsed and validated road disruptions.
     data_tests:
-      - check_reject_ratio:
-          arguments:
-            source_name: roads
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [batch_id, record_key]
@@ -32,6 +23,9 @@ models:
   - name: int_validated_bike_points
     description: Valid bike points.
     data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: bike_points
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [batch_id, bike_point_id]
@@ -44,6 +38,9 @@ models:
   - name: int_validated_chargers
     description: Valid charger connectors.
     data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: chargers
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [batch_id, connector_id]
@@ -56,6 +53,9 @@ models:
   - name: int_validated_roads
     description: Valid road disruptions.
     data_tests:
+      - check_reject_ratio:
+          arguments:
+            source_name: roads
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [batch_id, disruption_id, disrupted_segment_id]
