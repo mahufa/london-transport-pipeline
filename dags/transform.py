@@ -1,4 +1,4 @@
-from airflow.sdk import dag, Param
+from airflow.sdk import dag, task, Param
 from pendulum import duration
 from cosmos import DbtTaskGroup, ProfileConfig, ExecutionConfig, ProjectConfig
 from cosmos.operators.local import DbtSourceLocalOperator
@@ -8,6 +8,7 @@ from include.callbacks import notify_teams
 from include.connections import POSTGRES_CONN_ID
 from include.dag_config import START_DATE
 from include.datasets import DATASETS
+from include.helpers.metabase import sync_schema
 from include.paths import DBT_EXECUTABLE, DBT_PROJECT_DIR
 
 profile_config = ProfileConfig(
@@ -61,12 +62,18 @@ def transform():
         install_deps=False,
     )
 
-    DbtTaskGroup(
+    transform_data = DbtTaskGroup(
         group_id='transform_data',
         project_config=project_config,
         profile_config=profile_config,
         execution_config=execution_config,
     )
+
+    @task
+    def sync_metabase_schema():
+        sync_schema()
+
+    transform_data >> sync_metabase_schema()
 
 
 transform()
