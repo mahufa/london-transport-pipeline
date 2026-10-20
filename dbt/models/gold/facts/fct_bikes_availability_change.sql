@@ -2,6 +2,7 @@
     incremental_strategy='append',
     indexes=[{'columns': ['bike_point_id', 'updated_at'], 'unique': True}]
 ) }}
+-- depends_on: {{ ref('dim_bike_point') }}
 WITH changes AS (
 SELECT
     bike_point_id,

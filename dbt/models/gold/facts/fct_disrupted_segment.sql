@@ -1,4 +1,6 @@
 {{ config(unique_key=['disruption_id', 'disrupted_segment_id']) }}
+-- depends_on: {{ ref('dim_disruption') }}
+-- depends_on: {{ ref('dim_street_segment') }}
 WITH disrupted AS (
 SELECT
     disruption_id,

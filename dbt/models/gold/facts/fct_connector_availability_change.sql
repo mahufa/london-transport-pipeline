@@ -2,6 +2,8 @@
     incremental_strategy='append',
     indexes=[{'columns': ['connector_id', 'updated_at'], 'unique': True}]
 ) }}
+-- depends_on: {{ ref('dim_connector') }}
+-- depends_on: {{ ref('dim_charging_station') }}
 WITH changes AS (
 SELECT
     parent_station AS charging_station_id,
