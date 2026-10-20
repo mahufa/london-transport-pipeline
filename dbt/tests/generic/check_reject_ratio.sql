@@ -10,41 +10,45 @@
 -- warn-only: invalid rows are already filtered out, so a high ratio is an alert, not a gate
 -- model holds only valid rows, so rejects = raw + ingest rejects - valid
 WITH records AS (
-    SELECT batch_id
+    SELECT batch_id, loaded_at
     FROM {{ source('bronze', 'raw_tfl') }}
     WHERE source = '{{ source_name }}'
     UNION ALL
-    SELECT batch_id
+    SELECT batch_id, rejected_at
     FROM {{ source('bronze', 'rejected_records') }}
     WHERE source = '{{ source_name }}'
 ),
 
-latest AS (
-    {% if batch_id %}
-    SELECT '{{ batch_id }}'::text AS batch_id
-    {% else %}
-    SELECT max(batch_id) AS batch_id
+-- batches within the lookback of the newest one, or only the one passed for backfills
+batches AS (
+    SELECT
+        batch_id,
+        count(*) AS total
     FROM records
+    {% if batch_id %}
+    WHERE batch_id = '{{ batch_id }}'
+    {% endif %}
+    GROUP BY batch_id
+    {% if not batch_id %}
+    HAVING max(loaded_at) > (SELECT max(loaded_at) FROM records) - interval '{{ var('incremental_lookback') }}'
     {% endif %}
 ),
 
-counts AS (
+valid AS (
     SELECT
-        (
-            SELECT count(*)
-            FROM records
-            WHERE batch_id = (SELECT batch_id FROM latest)
-        ) AS total,
-        (
-            SELECT count(*)
-            FROM {{ model }}
-            WHERE batch_id = (SELECT batch_id FROM latest)
-        ) AS valid
+        batch_id,
+        count(*) AS valid
+    FROM {{ model }}
+    WHERE batch_id IN (SELECT batch_id FROM batches)
+    GROUP BY batch_id
 )
 
 SELECT
-    1
-FROM counts
-WHERE COALESCE((total - valid)::numeric / NULLIF(total, 0), 0) > {{ max_reject_ratio }}
+    b.batch_id,
+    b.total,
+    COALESCE(v.valid, 0) AS valid
+FROM batches b
+LEFT JOIN valid v USING (batch_id)
+WHERE (b.total - COALESCE(v.valid, 0))::numeric / b.total > {{ max_reject_ratio }}
 
 {%- endtest %}
