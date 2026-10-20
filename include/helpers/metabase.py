@@ -29,10 +29,10 @@ def _get_database_id(session: dict) -> int:
         endpoint='/api/database',
         headers=session,
     )
-    return next(
-        db['id'] for db in response.json()['data']
-        if db['name'] == DATABASE_NAME
-    )
+    for db in response.json()['data']:
+        if db['name'] == DATABASE_NAME:
+            return db['id']
+    raise ValueError(f"Metabase database '{DATABASE_NAME}' not found")
 
 
 def _get_metabase_hook(method: str) -> HttpHook:
