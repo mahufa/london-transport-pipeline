@@ -1,6 +1,7 @@
 from airflow.sdk import dag, Param
 from pendulum import duration
 from cosmos import DbtTaskGroup, ProfileConfig, ExecutionConfig, ProjectConfig
+from cosmos.operators.local import DbtSourceLocalOperator
 from cosmos.profiles.postgres import PostgresUserPasswordProfileMapping
 
 from include.callbacks import notify_teams
@@ -52,6 +53,14 @@ project_config = ProjectConfig(
     },
 )
 def transform():
+    DbtSourceLocalOperator(
+        task_id='check_source_freshness',
+        project_dir=DBT_PROJECT_DIR,
+        profile_config=profile_config,
+        dbt_executable_path=DBT_EXECUTABLE,
+        install_deps=False,
+    )
+
     DbtTaskGroup(
         group_id='transform_data',
         project_config=project_config,
