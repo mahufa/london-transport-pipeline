@@ -1,6 +1,6 @@
 from airflow.sdk import dag, task, Param
 from pendulum import duration
-from cosmos import DbtTaskGroup, ProfileConfig, ExecutionConfig, ProjectConfig
+from cosmos import DbtTaskGroup, ProfileConfig, ExecutionConfig, ProjectConfig, RenderConfig
 from cosmos.operators.local import DbtSourceLocalOperator
 from cosmos.profiles.postgres import PostgresUserPasswordProfileMapping
 
@@ -31,6 +31,11 @@ project_config = ProjectConfig(
         'incremental_lookback': '{{ params.incremental_lookback }}',
     },
 )
+
+render_config = RenderConfig(
+    should_detach_multiple_parents_tests=True
+)
+
 
 @dag(
     dag_id='transformer',
@@ -67,6 +72,7 @@ def transform():
         project_config=project_config,
         profile_config=profile_config,
         execution_config=execution_config,
+        render_config=render_config,
         on_warning_callback=notify_teams,
     )
 

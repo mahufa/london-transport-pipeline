@@ -32,7 +32,7 @@ validated AS (
 SELECT
     e.*,
     NULLIF(CONCAT_WS('; ',
-        {{ error_if_invalid('street_name_raw', 'varchar(50)', 'streetName') }},
+        {{ error_if_invalid('street_name_raw', 'text', 'streetName') }},
         {{ error_if_invalid('closure_raw', 'varchar(20)', 'closure') }},
         {{ error_if_invalid('directions_raw', 'varchar(30)', 'directions') }},
         {{ error_if_invalid('segment_id_raw', 'char(17)', 'disruptedStreetId') }},
@@ -58,7 +58,7 @@ SELECT
     record_key,
     loaded_at,
     error,
-    {{ cast_if_valid('street_name_raw', 'varchar(50)') }} AS street_name,
+    {{ cast_if_valid('street_name_raw', 'text') }} AS street_name,
     {{ cast_if_valid('closure_raw', 'varchar(20)') }} AS closure,
     {{ cast_if_valid('directions_raw', 'varchar(30)') }} AS directions,
     {{ cast_if_valid('segment_id_raw', 'char(17)') }} AS disrupted_segment_id,
