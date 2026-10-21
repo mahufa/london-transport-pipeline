@@ -8,6 +8,8 @@ ELT pipeline that loads Transport for London (TfL) data into a medallion-style P
 
 **Sources (TfL API):** `BikePoints` (dock availability), `Chargers` (EV charger availability), `Roads` (road disruptions).
 
+![London Transport dashboard in Metabase](docs/dashboard.png)
+
 ## Architecture
 
 ```mermaid
@@ -54,7 +56,7 @@ flowchart LR
   * **dbt tests:** uniqueness, not-null and fact-to-dim relationships.
   * **Freshness:** checked per source; it alerts but doesn't block the transform.
   * **Reject ratio:** a warning, alerted through Teams, when more than 10% of a batch is rejected.
-* **Visualize:** after a successful transform, the Metabase schema is synced.
+* **Visualize:** a "London Transport" Metabase dashboard (bike and EV charger availability, active road disruptions, rejected records) is provisioned on startup, and its schema is synced after each successful transform.
 
 ## Quickstart
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/). MinIO stands in for S3, and connections and Metabase are set up automatically.

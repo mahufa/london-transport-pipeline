@@ -82,3 +82,6 @@ else
   cat /tmp/db_response.json
   exit 1
 fi
+
+DB_ID=$(jq -r '.id' /tmp/db_response.json)
+. /metabase_init/dashboard.sh
